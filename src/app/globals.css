@@ -924,3 +924,6 @@ body.black .purchase-button a:hover {
     opacity: 1;
   }
 }
+.full-screen {
+  max-width: 90vw !important;
+}

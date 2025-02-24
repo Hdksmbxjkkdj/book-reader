@@ -10,7 +10,7 @@ const EpubReader = ({ url }) => {
     title: "",
     current: 1,
     total: 0,
-    fontSize: "100%",
+    fontSize: 100,
     color: "#333",
     background: "#f4f4f4",
     bodyBackground: "#ececec",
@@ -18,7 +18,8 @@ const EpubReader = ({ url }) => {
     setting: false,
     lists: [],
     themeId: 1,
-    lineHeight: 20,
+    lineHeight: 1.2,
+    fullScreen: false,
   };
   const viewerRef = useRef(null);
   const [rendition, setRendition] = useState(null);
@@ -38,9 +39,11 @@ const EpubReader = ({ url }) => {
         return { ...state, total: action.val };
       }
       case "larger": {
+        if (state.fontSize > 250) return state;
         return { ...state, fontSize: action.val };
       }
       case "smaller": {
+        if (state.fontSize < 75) return state;
         return { ...state, fontSize: action.val };
       }
       case "theme": {
@@ -59,10 +62,18 @@ const EpubReader = ({ url }) => {
         return { ...state, setting: !state.setting, list: false };
       }
       case "higher": {
-        return { ...state, lineHeight: state.lineHeight + 5 };
+        if (state.lineHeight > 5.2) return state;
+        return { ...state, lineHeight: state.lineHeight + 1 };
       }
       case "lower": {
-        return { ...state, lineHeight: state.lineHeight - 5 };
+        if (state.lineHeight < 2.2) return state;
+        return { ...state, lineHeight: state.lineHeight - 1 };
+      }
+      case "reload": {
+        return initialValue;
+      }
+      case "fullscreen": {
+        return { ...state, fullScreen: !state.fullScreen };
       }
       default: {
         return state;
@@ -118,23 +129,11 @@ const EpubReader = ({ url }) => {
   const goPrev = () => rendition && rendition.prev();
 
   function changefontSize(size) {
-    if (size === "larger") {
-      dispatch({
-        type: "larger",
-        val: `${
-          Number(state.fontSize.slice(0, state.fontSize.length - 1)) + 10
-        }%`,
-      });
-      rendition.themes.fontSize(state.fontSize);
-    } else if (size === "smaller") {
-      dispatch({
-        type: "smaller",
-        val: `${
-          Number(state.fontSize.slice(0, state.fontSize.length - 1)) - 10
-        }%`,
-      });
-      rendition.themes.fontSize(state.fontSize);
-    }
+    dispatch({
+      type: size,
+      val: size === "larger" ? state.fontSize + 10 : state.fontSize - 10,
+    });
+    rendition.themes.fontSize(state.fontSize + "%");
   }
   function changeTheme(background, textColor, bodyBackground, themeId) {
     dispatch({
@@ -166,31 +165,37 @@ const EpubReader = ({ url }) => {
   }
   function setLineHeight() {
     rendition.themes.register("lineHeight", {
-      "body,p.calibre3,h1,h2,h3,h4,h5,h6,span": {
-        lineHeight: `${state.lineHeight}px !important`,
+      "h1, h2, h3, h4, h5, h6, p, span, h2.l1": {
+        "line-height": `${state.lineHeight} !important`,
       },
     });
     rendition.themes.select("lineHeight");
   }
   function handleLineHeight(status) {
-    if (status === "larger") {
-      dispatch({
-        type: "higher",
-      });
-      setLineHeight();
-    } else if (status === "smaller") {
-      dispatch({
-        type: "lower",
-      });
-      setLineHeight();
-    }
+    dispatch({
+      type: status,
+    });
+    setLineHeight();
+  }
+  function handleAlign(type) {
+    rendition.themes.register("align", {
+      "body,p,h1,h2,h3,h4,h5,h6,span": {
+        "text-align": type,
+      },
+    });
+    rendition.themes.select("align");
+  }
+  function handleFullscreen() {
+    dispatch({
+      type: "fullscreen",
+    });
   }
   return (
     <div
       className="w-screen h-screen"
       style={{ backgroundColor: state.bodyBackground }}
     >
-      <div className="flex flex-col text-center h-screen max-w-6xl mx-auto">
+      <div className={`flex flex-col text-center h-screen max-w-6xl mx-auto ${state.fullScreen && 'full-screen'}`}>
         <div className="flex justify-between items-center p-2">
           <Image
             src="/logo.png"
@@ -338,7 +343,7 @@ const EpubReader = ({ url }) => {
                   </div>
                   <div
                     className="typographySettings"
-                    onClick={() => handleLineHeight("larger")}
+                    onClick={() => handleLineHeight("higher")}
                   >
                     <svg
                       height="24px"
@@ -349,7 +354,10 @@ const EpubReader = ({ url }) => {
                       <path d="M240-160 80-320l56-56 64 62v-332l-64 62-56-56 160-160 160 160-56 56-64-62v332l64-62 56 56-160 160Zm240-40v-80h400v80H480Zm0-240v-80h400v80H480Zm0-240v-80h400v80H480Z" />
                     </svg>
                   </div>
-                  <div className="typographySettings" onClick={()=>handleLineHeight("smaller")}>
+                  <div
+                    className="typographySettings"
+                    onClick={() => handleLineHeight("lower")}
+                  >
                     <svg
                       height="24px"
                       viewBox="0 -960 960 960"
@@ -361,7 +369,10 @@ const EpubReader = ({ url }) => {
                   </div>
                 </div>
                 <div className="flex h-16">
-                  <div className="typographySettings">
+                  <div
+                    className="typographySettings"
+                    onClick={() => handleAlign("right")}
+                  >
                     <svg
                       height="24px"
                       viewBox="0 -960 960 960"
@@ -371,7 +382,10 @@ const EpubReader = ({ url }) => {
                       <path d="M120-760v-80h720v80H120Zm240 160v-80h480v80H360ZM120-440v-80h720v80H120Zm240 160v-80h480v80H360ZM120-120v-80h720v80H120Z" />
                     </svg>
                   </div>
-                  <div className="typographySettings">
+                  <div
+                    className="typographySettings"
+                    onClick={() => handleAlign("justify")}
+                  >
                     <svg
                       height="24px"
                       viewBox="0 -960 960 960"
@@ -381,15 +395,29 @@ const EpubReader = ({ url }) => {
                       <path d="M120-120v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Z" />
                     </svg>
                   </div>
-                  <div className="typographySettings">
-                    <svg
-                      height="24px"
-                      viewBox="0 -960 960 960"
-                      width="24px"
-                      fill="#64748b"
-                    >
-                      <path d="M120-120v-200h80v120h120v80H120Zm520 0v-80h120v-120h80v200H640ZM120-640v-200h200v80H200v120h-80Zm640 0v-120H640v-80h200v200h-80Z" />
-                    </svg>
+                  <div
+                    className="typographySettings"
+                    onClick={handleFullscreen}
+                  >
+                    {state.fullScreen ? (
+                      <svg
+                        height="24px"
+                        viewBox="0 -960 960 960"
+                        width="24px"
+                        fill="#5f6368"
+                      >
+                        <path d="M240-120v-120H120v-80h200v200h-80Zm400 0v-200h200v80H720v120h-80ZM120-640v-80h120v-120h80v200H120Zm520 0v-200h80v120h120v80H640Z" />
+                      </svg>
+                    ) : (
+                      <svg
+                        height="24px"
+                        viewBox="0 -960 960 960"
+                        width="24px"
+                        fill="#64748b"
+                      >
+                        <path d="M120-120v-200h80v120h120v80H120Zm520 0v-80h120v-120h80v200H640ZM120-640v-200h200v80H200v120h-80Zm640 0v-120H640v-80h200v200h-80Z" />
+                      </svg>
+                    )}
                   </div>
                 </div>
               </div>
