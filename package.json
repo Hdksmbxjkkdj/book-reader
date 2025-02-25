@@ -12,9 +12,7 @@
     "epubjs": "^0.3.93",
     "next": "15.1.7",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-reader": "^2.0.12",
-    "use-local-storage-state": "^19.5.0"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
