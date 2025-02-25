@@ -2,7 +2,6 @@
 
 import Epub from "epubjs";
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useReducer, useRef, useState } from "react";
 
 const EpubReader = ({ url }) => {
@@ -195,7 +194,11 @@ const EpubReader = ({ url }) => {
       className="w-screen h-screen"
       style={{ backgroundColor: state.bodyBackground }}
     >
-      <div className={`flex flex-col text-center h-screen max-w-6xl mx-auto ${state.fullScreen && 'full-screen'}`}>
+      <div
+        className={`flex flex-col text-center h-screen max-w-6xl mx-auto ${
+          state.fullScreen && "full-screen"
+        }`}
+      >
         <div className="flex justify-between items-center p-2">
           <Image
             src="/logo.png"
@@ -242,12 +245,12 @@ const EpubReader = ({ url }) => {
                     return (
                       <li
                         key={item?.id}
-                        className="text-right border-b px-4 py-3 overflow-hidden hover:bg-gray-200"
+                        className="text-right border-b px-4 py-3 overflow-hidden hover:bg-gray-200 cursor-pointer"
+                        onClick={() => rendition.display(item?.href)}
                       >
-                        <Link href={item?.href} className="text-nowrap">
-                          <span className="font-semibold">{i + 1} . </span>
-                          <span className="text-sm">{item?.label}</span>
-                        </Link>
+                        <span className="text-nowrap text-xs">
+                          {i + 1} .{item?.label}
+                        </span>
                       </li>
                     );
                   })}
