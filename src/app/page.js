@@ -1,9 +1,7 @@
-import EpubReader from "./components/EpubReader/page";
+import Book from "./components/Book/page";
 
 export default function Home() {
-  return (
-    <>
-      <EpubReader url={"/ebadat.epub"} />
-    </>
-  );
+  return <>
+    <Book url={"/pg28885.epub"}/>
+  </>;
 }
