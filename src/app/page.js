@@ -1,4 +1,5 @@
 import Book from "./components/Book/page";
+import EpubReader from "./components/EpubReader/page";
 
 export default function Home() {
   return <>
