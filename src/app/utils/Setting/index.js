@@ -1,10 +1,16 @@
 export default function Setting(dispatch, rendition, state) {
   function changefontSize(size) {
+    let varibale;
+    if (size === "larger") {
+      varibale = state.fontSize + 10;
+    } else if (size === "smaller") {
+      varibale = state.fontSize - 10;
+    }
     dispatch({
       type: size,
-      val: size === "larger" ? state.fontSize + 10 : state.fontSize - 10,
+      val: varibale,
     });
-    rendition.themes.fontSize(state.fontSize + "%");
+    rendition.themes.fontSize(varibale + "%");
   }
   function changeTheme(background, textColor, bodyBackground, themeId) {
     dispatch({
@@ -24,19 +30,23 @@ export default function Setting(dispatch, rendition, state) {
     });
     rendition.themes.select("customTheme");
   }
-  function setLineHeight() {
+  function handleLineHeight(status) {
+    let line;
+    if (status === "higher") {
+      line = state.lineHeight + 1;
+    } else if (status === "lower") {
+      line = state.lineHeight - 1;
+    }
     rendition.themes.register("lineHeight", {
       "h1, h2, h3, h4, h5, h6, p, span, h2.l1": {
-        "line-height": `${state.lineHeight} !important`,
+        "line-height": `${line} !important`,
       },
     });
     rendition.themes.select("lineHeight");
-  }
-  function handleLineHeight(status) {
     dispatch({
       type: status,
+      val: line,
     });
-    setLineHeight();
   }
   function handleAlign(type) {
     rendition.themes.register("align", {
@@ -61,6 +71,15 @@ export default function Setting(dispatch, rendition, state) {
       type: "list",
     });
   }
+  function setTitle(rend) {
+    const title = rend.book.navigation.toc.find(
+      (item) => item.href == rend.location.start.href
+      );
+      dispatch({
+      type: "setTitle",
+      val: title?.label,
+    });
+  }
   const goNext = () => rendition && rendition.next();
   const goPrev = () => rendition && rendition.prev();
   return {
@@ -73,5 +92,6 @@ export default function Setting(dispatch, rendition, state) {
     handleSetting,
     goNext,
     goPrev,
+    setTitle,
   };
 }

@@ -33,7 +33,7 @@ export default function EpubHeader({ state, rendition, func }) {
           </svg>
         </button>
         <h1 className="text-gray-500 text-xl font-semibold basis-2/3 overflow-hidden text-nowrap">
-          {state?.title}
+          {state.name} {state.title ? `:${state.title}`:''}
         </h1>
         <div className="relative flex gap-6">
           <button
@@ -52,12 +52,12 @@ export default function EpubHeader({ state, rendition, func }) {
             <span className="text-gray-500 text-sm font-semibold">فهرست</span>
             <div
               className={`absolute top-full z-50 right-0 border border-slate-300 cursor-default rounded-sm w-72 h-96 overflow-auto ${
-                state.list ? "block" : "hidden"
+                state?.list ? "block" : "hidden"
               }`}
-              style={{ backgroundColor: state.background }}
+              style={{ backgroundColor: state?.background }}
             >
               <ul className="flex flex-col">
-                {state.lists.map((item, i) => {
+                {state?.lists?.map((item, i) => {
                   return (
                     <li
                       key={item?.id}
@@ -66,7 +66,7 @@ export default function EpubHeader({ state, rendition, func }) {
                     >
                       <span
                         className="text-nowrap text-xs"
-                        style={{ color: state.color }}
+                        style={{ color: state?.color }}
                       >
                         {i + 1} .{item?.label}
                       </span>
@@ -93,21 +93,12 @@ export default function EpubHeader({ state, rendition, func }) {
               تنظیمات
             </span>
           </button>
-          <button className="relative" title="بازگشت به خانه">
-            <svg
-              height="24px"
-              viewBox="0 -960 960 960"
-              width="24px"
-              fill="#5f6368"
-            >
-              <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
-            </svg>
-            <div className={`${state.setting ? "block" : "hidden"} menu`}>
+            <div className={`${state?.setting ? "block" : "hidden"} menu`}>
               <div className="flex gap-5 p-4">
                 <div
                   onClick={() => changeTheme("white", "black", "#ececec", 1)}
                   className={`bg-white text-black selectTheme ${
-                    state.themeId == 1 ? "active" : ""
+                    state?.themeId == 1 ? "active" : ""
                   }`}
                 >
                   آ
@@ -115,7 +106,7 @@ export default function EpubHeader({ state, rendition, func }) {
                 <div
                   onClick={() => changeTheme("#f6efde ", "black", "#f2e5cb", 2)}
                   className={`bg-amber-100 text-black selectTheme ${
-                    state.themeId == 2 ? "active" : ""
+                    state?.themeId == 2 ? "active" : ""
                   }`}
                 >
                   آ
@@ -123,7 +114,7 @@ export default function EpubHeader({ state, rendition, func }) {
                 <div
                   onClick={() => changeTheme("#484848 ", "white", "#484848", 3)}
                   className={`bg-emerald-800 text-white selectTheme ${
-                    state.themeId == 3 ? "active" : ""
+                    state?.themeId == 3 ? "active" : ""
                   }`}
                 >
                   آ
@@ -131,7 +122,7 @@ export default function EpubHeader({ state, rendition, func }) {
                 <div
                   onClick={() => changeTheme("#121212", "white", "black", 4)}
                   className={`bg-black text-white selectTheme ${
-                    state.themeId == 4 ? "active" : ""
+                    state?.themeId == 4 ? "active" : ""
                   }`}
                 >
                   آ
@@ -215,7 +206,7 @@ export default function EpubHeader({ state, rendition, func }) {
                   </svg>
                 </div>
                 <div className="typographySettings" onClick={handleFullscreen}>
-                  {state.fullScreen ? (
+                  {state?.fullScreen ? (
                     <svg
                       height="24px"
                       viewBox="0 -960 960 960"
@@ -237,6 +228,15 @@ export default function EpubHeader({ state, rendition, func }) {
                 </div>
               </div>
             </div>
+          <button className="relative" title="بازگشت به خانه">
+            <svg
+              height="24px"
+              viewBox="0 -960 960 960"
+              width="24px"
+              fill="#5f6368"
+            >
+              <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+            </svg>
           </button>
         </div>
       </div>

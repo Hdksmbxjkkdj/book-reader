@@ -4,7 +4,9 @@ import Epub from "epubjs";
 import { useEffect, useReducer, useRef, useState } from "react";
 import EpubHeader from "../epubHeader";
 const EpubReader = ({ url }) => {
+  const initial = JSON.parse(sessionStorage.getItem("setting"));
   const initialValue = {
+    name:"",
     title: "",
     current: 1,
     total: 0,
@@ -18,12 +20,20 @@ const EpubReader = ({ url }) => {
     themeId: 1,
     lineHeight: 1.2,
     fullScreen: false,
+    align:"rtl"
   };
   const viewerRef = useRef(null);
   const [rendition, setRendition] = useState(null);
-  const [state, dispatch] = useReducer(reducerFunction, initialValue);
+  const [state, dispatch] = useReducer(
+    reducerFunction,
+    initial != null ? initial : initialValue
+  );
+  sessionStorage.setItem("setting", JSON.stringify(state));
   function reducerFunction(state, action) {
     switch (action.type) {
+      case "setName": {
+        return { ...state, name: action.val };
+      }
       case "setTitle": {
         return { ...state, title: action.val };
       }
@@ -61,11 +71,11 @@ const EpubReader = ({ url }) => {
       }
       case "higher": {
         if (state.lineHeight > 5.2) return state;
-        return { ...state, lineHeight: state.lineHeight + 1 };
+        return { ...state, lineHeight: action.val };
       }
       case "lower": {
         if (state.lineHeight < 2.2) return state;
-        return { ...state, lineHeight: state.lineHeight - 1 };
+        return { ...state, lineHeight: action.val };
       }
       case "reload": {
         return initialValue;
@@ -78,12 +88,12 @@ const EpubReader = ({ url }) => {
       }
     }
   }
-  const { goNext, goPrev, ...others } = Setting(dispatch, rendition, state);
+  const { goNext, goPrev,setTitle, ...others } = Setting(dispatch, rendition, state);
   useEffect(() => {
     const book = Epub(url);
     book.loaded.metadata.then((metadata) => {
       dispatch({
-        type: "setTitle",
+        type: "setName",
         val: metadata.title,
       });
     });
@@ -91,22 +101,25 @@ const EpubReader = ({ url }) => {
       width: "100%",
       height: "80vh",
     });
-
     renditionInstance.display().then(() => {
       renditionInstance.themes.register("default", {
         "body, p, span, div, h1, h2, h3, h4, h5, h6": {
-          color: "#000000 !important",
+          color: `${state.color} !important`,
           fontFamily: "BNazanin, Arial, sans-serif !important",
           direction: "rtl !important",
           textAlign: "justify !important",
           "user-select": "none",
+          fontSize: `${state.fontSize} !important`,
+          "line-height": `${state.lineHeight} !important`,
         },
         "h1, h2, h3, h4, h5, h6 ,p ,span,h2.l1": {
           background: "transparent !important",
+          fontSize: `${state.fontSize} !important`,
+          "line-height": `${state.lineHeight} !important`,
         },
         "body ,section ,div": {
-          background: "#ffffff",
-        },
+          background: `${state.background} !important`,
+        }
       });
       renditionInstance.themes.select("default");
       dispatch({
@@ -118,6 +131,9 @@ const EpubReader = ({ url }) => {
         val: book.locations.total,
       });
     });
+    renditionInstance.on("locationChanged",function(){
+      setTitle(renditionInstance)
+    })
     setRendition(renditionInstance);
     return () => {
       book.destroy();
@@ -145,7 +161,8 @@ const EpubReader = ({ url }) => {
             onClick={goNext}
             title="بعدی"
           >
-            <svg className="group-hover:!fill-slate-950 transition-all duration-300"
+            <svg
+              className="group-hover:!fill-slate-950 transition-all duration-300"
               height="36px"
               viewBox="0 -960 960 960"
               width="36px"
@@ -160,7 +177,8 @@ const EpubReader = ({ url }) => {
             onClick={goPrev}
             title="قبلی"
           >
-            <svg className="group-hover:!fill-slate-950 transition-all duration-300"
+            <svg
+              className="group-hover:!fill-slate-950 transition-all duration-300"
               height="36px"
               viewBox="0 -960 960 960"
               width="36px"
