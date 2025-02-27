@@ -74,14 +74,16 @@ export default function Setting(dispatch, rendition, state) {
   function setTitle(rend) {
     const title = rend.book.navigation.toc.find(
       (item) => item.href == rend.location.start.href
-      );
-      dispatch({
+    );
+    dispatch({
       type: "setTitle",
       val: title?.label,
     });
   }
-  const goNext = () => rendition && rendition.next();
-  const goPrev = () => rendition && rendition.prev();
+  const goNext = (rendition=rendition) => {
+    rendition.next();
+  };
+  const goPrev = (rendition=rendition) => rendition && rendition.prev();
   return {
     changefontSize,
     changeTheme,

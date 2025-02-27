@@ -22,7 +22,7 @@ export default function EpubHeader({ state, rendition, func }) {
           className="hidden lg:block"
           style={{filter:"drop-shadow(0 0 .3px #0067b6) !important"}}
         /></Link>
-        <button className="lg:hidden">
+        <button className="lg:hidden" onClick={handleList}>
           <svg
             height="24px"
             viewBox="0 -960 960 960"
@@ -50,8 +50,9 @@ export default function EpubHeader({ state, rendition, func }) {
               <path d="M160-200v-80h400v80H160Zm0-160v-80h640v80H160Zm0-160v-80h640v80H160Zm0-160v-80h640v80H160Z" />
             </svg>
             <span className="text-gray-500 text-sm font-semibold">فهرست</span>
+          </button>
             <div
-              className={`absolute top-full z-50 right-0 border border-slate-300 cursor-default rounded-sm w-72 h-96 overflow-auto ${
+              className={`absolute top-full translate-y-2 z-50 lg:right-0 left-full translate-x-6 lg:translate-x-0 border border-slate-300 cursor-default rounded-sm w-72 h-96 overflow-auto ${
                 state?.list ? "block" : "hidden"
               }`}
               style={{ backgroundColor: state?.background }}
@@ -75,7 +76,6 @@ export default function EpubHeader({ state, rendition, func }) {
                 })}
               </ul>
             </div>
-          </button>
           <button
             className="flex flex-col items-center"
             onClick={handleSetting}

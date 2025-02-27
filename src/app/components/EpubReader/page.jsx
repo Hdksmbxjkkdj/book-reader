@@ -1,12 +1,14 @@
 "use client";
+
 import Setting from "@/app/utils/Setting";
 import Epub from "epubjs";
 import { useEffect, useReducer, useRef, useState } from "react";
+import { isMobile } from "react-device-detect";
 import EpubHeader from "../epubHeader";
 const EpubReader = ({ url }) => {
   const initial = JSON.parse(sessionStorage.getItem("setting"));
   const initialValue = {
-    name:"",
+    name: "",
     title: "",
     current: 1,
     total: 0,
@@ -20,7 +22,7 @@ const EpubReader = ({ url }) => {
     themeId: 1,
     lineHeight: 1.2,
     fullScreen: false,
-    align:"rtl"
+    align: "rtl",
   };
   const viewerRef = useRef(null);
   const [rendition, setRendition] = useState(null);
@@ -88,7 +90,11 @@ const EpubReader = ({ url }) => {
       }
     }
   }
-  const { goNext, goPrev,setTitle, ...others } = Setting(dispatch, rendition, state);
+  const { goNext, goPrev, setTitle, ...others } = Setting(
+    dispatch,
+    rendition,
+    state
+  );
   useEffect(() => {
     const book = Epub(url);
     book.loaded.metadata.then((metadata) => {
@@ -100,7 +106,9 @@ const EpubReader = ({ url }) => {
     const renditionInstance = book.renderTo(viewerRef.current, {
       width: "100%",
       height: "80vh",
+      spread: "none", // غیرفعال کردن نمایش دو صفحه
     });
+    setRendition(renditionInstance);
     renditionInstance.display().then(() => {
       renditionInstance.themes.register("default", {
         "body, p, span, div, h1, h2, h3, h4, h5, h6": {
@@ -119,7 +127,7 @@ const EpubReader = ({ url }) => {
         },
         "body ,section ,div": {
           background: `${state.background} !important`,
-        }
+        },
       });
       renditionInstance.themes.select("default");
       dispatch({
@@ -131,10 +139,32 @@ const EpubReader = ({ url }) => {
         val: book.locations.total,
       });
     });
-    renditionInstance.on("locationChanged",function(){
-      setTitle(renditionInstance)
+    renditionInstance.on("locationChanged", function () {
+      setTitle(renditionInstance);
+    });
+    var startX = 0;
+    var deltaX = 0;
+    renditionInstance.on("touchstart",function(e){
+      e.preventDefault()
+      startX = e.touches[0].clientX;
     })
-    setRendition(renditionInstance);
+    renditionInstance.on("touchmove",function(e){
+      e.preventDefault();
+      const currentX = e.touches[0].clientX;
+      deltaX = startX - currentX;
+    })
+    renditionInstance.on("touchend",function(e) {
+      
+      e.preventDefault();
+      if(deltaX>20) {
+        goNext(renditionInstance)
+      }
+      if(deltaX<-20) {
+        goPrev(renditionInstance)
+      }
+      deltaX = 0;
+      startX = 0;
+    })
     return () => {
       book.destroy();
     };
@@ -156,37 +186,45 @@ const EpubReader = ({ url }) => {
           rendition={rendition}
         />
         <div className="flex items-center justify-center relative">
-          <button
-            className="text-2xl absolute h-full top-0 !right-0 group"
-            onClick={goNext}
-            title="بعدی"
-          >
-            <svg
-              className="group-hover:!fill-slate-950 transition-all duration-300"
-              height="36px"
-              viewBox="0 -960 960 960"
-              width="36px"
-              fill="#444444"
+          {!isMobile && (
+            <button
+              className="text-2xl absolute h-full top-0 !right-0 group"
+              onClick={()=>goNext(rendition)}
+              title="بعدی"
             >
-              <path d="m321-80-71-71 329-329-329-329 71-71 400 400L321-80Z" />
-            </svg>
-          </button>
-          <div ref={viewerRef} className="w-full mx-auto !px-12" />
-          <button
-            className="text-2xl absolute h-full top-0 !left-0 group"
-            onClick={goPrev}
-            title="قبلی"
-          >
-            <svg
-              className="group-hover:!fill-slate-950 transition-all duration-300"
-              height="36px"
-              viewBox="0 -960 960 960"
-              width="36px"
-              fill="#666"
+              <svg
+                className="group-hover:!fill-slate-950 transition-all duration-300"
+                height="36px"
+                viewBox="0 -960 960 960"
+                width="36px"
+                fill="#444444"
+              >
+                <path d="m321-80-71-71 329-329-329-329 71-71 400 400L321-80Z" />
+              </svg>
+            </button>
+          )}
+          <div
+            id="viewRef"
+            ref={viewerRef}
+            className={`w-full mx-auto ${!isMobile ? "!px-12" : "!px-2"}`}
+          />
+          {!isMobile && (
+            <button
+              className="text-2xl absolute h-full top-0 !left-0 group"
+              onClick={()=>goPrev(rendition)}
+              title="قبلی"
             >
-              <path d="M400-80 0-480l400-400 71 71-329 329 329 329-71 71Z" />
-            </svg>
-          </button>
+              <svg
+                className="group-hover:!fill-slate-950 transition-all duration-300"
+                height="36px"
+                viewBox="0 -960 960 960"
+                width="36px"
+                fill="#666"
+              >
+                <path d="M400-80 0-480l400-400 71 71-329 329 329 329-71 71Z" />
+              </svg>
+            </button>
+          )}
         </div>
         <div className="p-2 w-full">
           <span style={{ color: state.color }}>
