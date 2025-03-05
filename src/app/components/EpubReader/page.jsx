@@ -23,6 +23,7 @@ const EpubReader = ({ url }) => {
     lineHeight: 1.2,
     fullScreen: false,
     align: "rtl",
+    location: 0,
   };
   const viewerRef = useRef(null);
   const [rendition, setRendition] = useState(null);
@@ -85,6 +86,9 @@ const EpubReader = ({ url }) => {
       case "fullscreen": {
         return { ...state, fullScreen: !state.fullScreen };
       }
+      case "setlocation": {
+        return { ...state, location: action.val };
+      }
       default: {
         return state;
       }
@@ -102,6 +106,7 @@ const EpubReader = ({ url }) => {
         type: "setName",
         val: metadata.title,
       });
+      renditionInstance.display(state.location);
     });
     const renditionInstance = book.renderTo(viewerRef.current, {
       width: "100%",
@@ -109,7 +114,7 @@ const EpubReader = ({ url }) => {
       spread: "none", // غیرفعال کردن نمایش دو صفحه
     });
     setRendition(renditionInstance);
-    renditionInstance.display().then(() => {
+    renditionInstance.display().then(async () => {
       renditionInstance.themes.register("default", {
         "body, p, span, div, h1, h2, h3, h4, h5, h6": {
           color: `${state.color} !important`,
@@ -139,32 +144,43 @@ const EpubReader = ({ url }) => {
         val: book.locations.total,
       });
     });
-    renditionInstance.on("locationChanged", function () {
+    renditionInstance.on("locationChanged", function (location) {
       setTitle(renditionInstance);
+      dispatch({
+        type: "changepage",
+        val: renditionInstance.location.start.displayed.page,
+      });
+      dispatch({
+        type: "showtotal",
+        val: renditionInstance.location.start.displayed.total,
+      });
+      dispatch({
+        type: "setlocation",
+        val: location.start,
+      });
     });
     var startX = 0;
     var deltaX = 0;
-    renditionInstance.on("touchstart",function(e){
-      e.preventDefault()
+    renditionInstance.on("touchstart", function (e) {
+      e.preventDefault();
       startX = e.touches[0].clientX;
-    })
-    renditionInstance.on("touchmove",function(e){
+    });
+    renditionInstance.on("touchmove", function (e) {
       e.preventDefault();
       const currentX = e.touches[0].clientX;
       deltaX = startX - currentX;
-    })
-    renditionInstance.on("touchend",function(e) {
-      
+    });
+    renditionInstance.on("touchend", function (e) {
       e.preventDefault();
-      if(deltaX>20) {
-        goNext(renditionInstance)
+      if (deltaX > 20) {
+        goNext(renditionInstance);
       }
-      if(deltaX<-20) {
-        goPrev(renditionInstance)
+      if (deltaX < -20) {
+        goPrev(renditionInstance);
       }
       deltaX = 0;
       startX = 0;
-    })
+    });
     return () => {
       book.destroy();
     };
@@ -189,7 +205,7 @@ const EpubReader = ({ url }) => {
           {!isMobile && (
             <button
               className="text-2xl absolute h-full top-0 !right-0 group"
-              onClick={()=>goNext(rendition)}
+              onClick={() => goNext(rendition)}
               title="بعدی"
             >
               <svg
@@ -211,7 +227,7 @@ const EpubReader = ({ url }) => {
           {!isMobile && (
             <button
               className="text-2xl absolute h-full top-0 !left-0 group"
-              onClick={()=>goPrev(rendition)}
+              onClick={() => goPrev(rendition)}
               title="قبلی"
             >
               <svg
@@ -228,8 +244,11 @@ const EpubReader = ({ url }) => {
         </div>
         <div className="p-2 w-full">
           <span style={{ color: state.color }}>
-            {state?.current} از {state?.total}
-          </span>
+            صفحه {state?.current} از {state?.total}
+          </span>{" "}
+          {state.title && (
+            <span style={{ color: state.color }}>فصل {state.title}</span>
+          )}
         </div>
       </div>
     </div>

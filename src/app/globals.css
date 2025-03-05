@@ -81,3 +81,25 @@ body {
 .full-screen {
   max-width: 90vw !important;
 }
+
+.ball {
+  animation: loading infinite 700ms ease-out alternate;
+}
+.ball:nth-child(1){
+  animation-delay: 0;
+}
+.ball:nth-child(2){
+  animation-delay: 220ms;
+}
+.ball:nth-child(1) {
+  animation-delay: 500ms;
+}
+
+@keyframes loading {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.4);
+  }
+}

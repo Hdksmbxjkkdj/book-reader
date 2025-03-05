@@ -13,13 +13,37 @@ export default function EpubHeader({ state, rendition, func }) {
   } = func;
   return (
     <>
-      <div className="flex justify-between items-center p-2">
-        <Link href="/"><Image
+      <div className="flex justify-between items-center p-2 relative">
+      <div
+              className={`absolute top-full z-50 lg:left-0 right- border border-slate-300 cursor-default rounded-sm w-72 h-96 overflow-auto ${
+                state?.list ? "block" : "hidden"
+              }`}
+              style={{ backgroundColor: state?.background }}
+            >
+              <ul className="flex flex-col">
+                {state?.lists?.map((item, i) => {
+                  return (
+                    <li
+                      key={item?.id}
+                      className={`text-right border-b px-4 py-3 overflow-hidden hover:bg-gray-200/50 cursor-pointer ${state.location ==item.href && 'bg-gray-200/50'}`}
+                      onClick={() => rendition.display(item?.href)}
+                    >
+                      <span
+                        className="text-nowrap text-xs"
+                        style={{ color: state?.color }}
+                      >
+                        {i + 1} .{item?.label}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+        <Link href="/" className="hidden lg:block"><Image
           src="/logo.png"
           alt="logo"
           width={64}
           height={64}
-          className="hidden lg:block"
           style={{filter:"drop-shadow(0 0 .3px #0067b6) !important"}}
         /></Link>
         <button className="lg:hidden" onClick={handleList}>
@@ -33,7 +57,7 @@ export default function EpubHeader({ state, rendition, func }) {
           </svg>
         </button>
         <h1 className="text-gray-500 text-xl font-semibold basis-2/3 overflow-hidden text-nowrap">
-          {state.name} {state.title ? `:${state.title}`:''}
+          {state.name} {state.title && ` : ${state.title}`}
         </h1>
         <div className="relative flex gap-6">
           <button
@@ -51,31 +75,6 @@ export default function EpubHeader({ state, rendition, func }) {
             </svg>
             <span className="text-gray-500 text-sm font-semibold">فهرست</span>
           </button>
-            <div
-              className={`absolute top-full translate-y-2 z-50 lg:right-0 left-full translate-x-6 lg:translate-x-0 border border-slate-300 cursor-default rounded-sm w-72 h-96 overflow-auto ${
-                state?.list ? "block" : "hidden"
-              }`}
-              style={{ backgroundColor: state?.background }}
-            >
-              <ul className="flex flex-col">
-                {state?.lists?.map((item, i) => {
-                  return (
-                    <li
-                      key={item?.id}
-                      className="text-right border-b px-4 py-3 overflow-hidden hover:bg-gray-200/50 cursor-pointer"
-                      onClick={() => rendition.display(item?.href)}
-                    >
-                      <span
-                        className="text-nowrap text-xs"
-                        style={{ color: state?.color }}
-                      >
-                        {i + 1} .{item?.label}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
           <button
             className="flex flex-col items-center"
             onClick={handleSetting}
