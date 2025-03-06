@@ -140,10 +140,6 @@ const EpubReader = ({ url }) => {
           type: "topic",
           val: book.navigation.toc,
         });
-        dispatch({
-          type: "showtotal",
-          val: book.locations.total,
-        });
       });
       await book.locations.generate(2285);
       renditionInstance.on("locationChanged", function (location) {
@@ -250,9 +246,6 @@ const EpubReader = ({ url }) => {
           <span style={{ color: state.color }}>
             صفحه {state?.current} از {state?.total}
           </span>{" "}
-          {state.title && (
-            <span style={{ color: state.color }}>فصل {state.title}</span>
-          )}
           <input type="range" className="w-full" onChange={(e)=>changePage(e.target.value)} />
         </div>
       </div>
