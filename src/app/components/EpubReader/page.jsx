@@ -94,93 +94,97 @@ const EpubReader = ({ url }) => {
       }
     }
   }
-  const { goNext, goPrev, setTitle, ...others } = Setting(
+  const { goNext, goPrev, setTitle,changePage, ...others } = Setting(
     dispatch,
     rendition,
     state
   );
   useEffect(() => {
-    const book = Epub(url);
-    book.loaded.metadata.then((metadata) => {
-      dispatch({
-        type: "setName",
-        val: metadata.title,
+    const loadbook = async()=> {
+      const book = Epub(url);
+      book.loaded.metadata.then((metadata) => {
+        dispatch({
+          type: "setName",
+          val: metadata.title,
+        });
+        renditionInstance.display(state.location);
       });
-      renditionInstance.display(state.location);
-    });
-    const renditionInstance = book.renderTo(viewerRef.current, {
-      width: "100%",
-      height: "80vh",
-      spread: "none", // غیرفعال کردن نمایش دو صفحه
-    });
-    setRendition(renditionInstance);
-    renditionInstance.display().then(async () => {
-      renditionInstance.themes.register("default", {
-        "body, p, span, div, h1, h2, h3, h4, h5, h6": {
-          color: `${state.color} !important`,
-          fontFamily: "BNazanin, Arial, sans-serif !important",
-          direction: "rtl !important",
-          textAlign: "justify !important",
-          "user-select": "none",
-          fontSize: `${state.fontSize} !important`,
-          "line-height": `${state.lineHeight} !important`,
-        },
-        "h1, h2, h3, h4, h5, h6 ,p ,span,h2.l1": {
-          background: "transparent !important",
-          fontSize: `${state.fontSize} !important`,
-          "line-height": `${state.lineHeight} !important`,
-        },
-        "body ,section ,div": {
-          background: `${state.background} !important`,
-        },
+      const renditionInstance = book.renderTo(viewerRef.current, {
+        width: "100%",
+        height: "80vh",
+        spread: "none", // غیرفعال کردن نمایش دو صفحه
       });
-      renditionInstance.themes.select("default");
-      dispatch({
-        type: "topic",
-        val: book.navigation.toc,
+      setRendition(renditionInstance);
+      await renditionInstance.display().then(async () => {
+        renditionInstance.themes.register("default", {
+          "body, p, span, div, h1, h2, h3, h4, h5, h6": {
+            color: `${state.color} !important`,
+            fontFamily: "BNazanin, Arial, sans-serif !important",
+            direction: "rtl !important",
+            textAlign: "justify !important",
+            "user-select": "none",
+            fontSize: `${state.fontSize} !important`,
+            "line-height": `${state.lineHeight} !important`,
+          },
+          "h1, h2, h3, h4, h5, h6 ,p ,span,h2.l1": {
+            background: "transparent !important",
+            fontSize: `${state.fontSize} !important`,
+            "line-height": `${state.lineHeight} !important`,
+          },
+          "body ,section ,div": {
+            background: `${state.background} !important`,
+          },
+        });
+        renditionInstance.themes.select("default");
+        dispatch({
+          type: "topic",
+          val: book.navigation.toc,
+        });
+        dispatch({
+          type: "showtotal",
+          val: book.locations.total,
+        });
       });
-      dispatch({
-        type: "showtotal",
-        val: book.locations.total,
+      await book.locations.generate(2285);
+      renditionInstance.on("locationChanged", function (location) {
+        setTitle(renditionInstance);
+        dispatch({
+          type: "changepage",
+          val: renditionInstance.location.start.displayed.page,
+        });
+        dispatch({
+          type: "showtotal",
+          val: renditionInstance.location.start.displayed.total,
+        });
+        dispatch({
+          type: "setlocation",
+          val: location.start,
+        });
       });
-    });
-    renditionInstance.on("locationChanged", function (location) {
-      setTitle(renditionInstance);
-      dispatch({
-        type: "changepage",
-        val: renditionInstance.location.start.displayed.page,
+      var startX = 0;
+      var deltaX = 0;
+      renditionInstance.on("touchstart", function (e) {
+        e.preventDefault();
+        startX = e.touches[0].clientX;
       });
-      dispatch({
-        type: "showtotal",
-        val: renditionInstance.location.start.displayed.total,
+      renditionInstance.on("touchmove", function (e) {
+        e.preventDefault();
+        const currentX = e.touches[0].clientX;
+        deltaX = startX - currentX;
       });
-      dispatch({
-        type: "setlocation",
-        val: location.start,
+      renditionInstance.on("touchend", function (e) {
+        e.preventDefault();
+        if (deltaX > 20) {
+          goNext(renditionInstance);
+        }
+        if (deltaX < -20) {
+          goPrev(renditionInstance);
+        }
+        deltaX = 0;
+        startX = 0;
       });
-    });
-    var startX = 0;
-    var deltaX = 0;
-    renditionInstance.on("touchstart", function (e) {
-      e.preventDefault();
-      startX = e.touches[0].clientX;
-    });
-    renditionInstance.on("touchmove", function (e) {
-      e.preventDefault();
-      const currentX = e.touches[0].clientX;
-      deltaX = startX - currentX;
-    });
-    renditionInstance.on("touchend", function (e) {
-      e.preventDefault();
-      if (deltaX > 20) {
-        goNext(renditionInstance);
-      }
-      if (deltaX < -20) {
-        goPrev(renditionInstance);
-      }
-      deltaX = 0;
-      startX = 0;
-    });
+    }
+    loadbook()
     return () => {
       book.destroy();
     };
@@ -249,6 +253,7 @@ const EpubReader = ({ url }) => {
           {state.title && (
             <span style={{ color: state.color }}>فصل {state.title}</span>
           )}
+          <input type="range" className="w-full" onChange={(e)=>changePage(e.target.value)} />
         </div>
       </div>
     </div>

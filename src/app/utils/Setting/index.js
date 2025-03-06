@@ -83,6 +83,10 @@ export default function Setting(dispatch, rendition, state) {
   const goNext = (rendition=rendition) => {
     rendition.next();
   };
+  const changePage = (val)=> {
+    var cfi = rendition.book.locations.cfiFromPercentage(val/100);
+    rendition.display(cfi)
+  }
   const goPrev = (rendition=rendition) => rendition && rendition.prev();
   return {
     changefontSize,
@@ -95,5 +99,6 @@ export default function Setting(dispatch, rendition, state) {
     goNext,
     goPrev,
     setTitle,
+    changePage
   };
 }
