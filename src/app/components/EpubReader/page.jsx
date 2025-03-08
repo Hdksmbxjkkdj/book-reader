@@ -5,6 +5,7 @@ import Epub from "epubjs";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
 import EpubHeader from "../epubHeader";
+import NavigateBtn from "../NavigateBtn";
 const EpubReader = ({ url }) => {
   const initial = JSON.parse(sessionStorage.getItem("setting"));
   const initialValue = {
@@ -12,6 +13,7 @@ const EpubReader = ({ url }) => {
     title: "",
     current: 1,
     total: 0,
+    totalPage: 0,
     fontSize: 100,
     color: "#333",
     background: "#f4f4f4",
@@ -26,6 +28,7 @@ const EpubReader = ({ url }) => {
     location: 0,
   };
   const viewerRef = useRef(null);
+  const range = useRef()
   const [rendition, setRendition] = useState(null);
   const [state, dispatch] = useReducer(
     reducerFunction,
@@ -48,6 +51,9 @@ const EpubReader = ({ url }) => {
       }
       case "showtotal": {
         return { ...state, total: action.val };
+      }
+      case "settotal": {
+        return { ...state, totalPage: action.val };
       }
       case "larger": {
         if (state.fontSize > 250) return state;
@@ -94,13 +100,13 @@ const EpubReader = ({ url }) => {
       }
     }
   }
-  const { goNext, goPrev, setTitle,changePage, ...others } = Setting(
+  const { goNext,goPrev,setTitle, changePage, ...others } = Setting(
     dispatch,
     rendition,
     state
   );
   useEffect(() => {
-    const loadbook = async()=> {
+    const loadbook = async () => {
       const book = Epub(url);
       book.loaded.metadata.then((metadata) => {
         dispatch({
@@ -142,12 +148,17 @@ const EpubReader = ({ url }) => {
         });
       });
       await book.locations.generate(2285);
-      renditionInstance.on("locationChanged", function (location) {
+      dispatch({
+        type:"settotal",
+        val:book.locations.total
+      })
+      renditionInstance.on("locationChanged", async function (location) {
         setTitle(renditionInstance);
         dispatch({
           type: "changepage",
           val: renditionInstance.location.start.displayed.page,
         });
+        // برای نمایش فصل به فصل مورد استفاده قرار میگیرد
         dispatch({
           type: "showtotal",
           val: renditionInstance.location.start.displayed.total,
@@ -157,6 +168,7 @@ const EpubReader = ({ url }) => {
           val: location.start,
         });
       });
+      console.log(book.locations.percentageFromCfi(state.location));
       var startX = 0;
       var deltaX = 0;
       renditionInstance.on("touchstart", function (e) {
@@ -179,8 +191,8 @@ const EpubReader = ({ url }) => {
         deltaX = 0;
         startX = 0;
       });
-    }
-    loadbook()
+    };
+    loadbook();
     return () => {
       book.destroy();
     };
@@ -203,21 +215,7 @@ const EpubReader = ({ url }) => {
         />
         <div className="flex items-center justify-center relative">
           {!isMobile && (
-            <button
-              className="text-2xl absolute h-full top-0 !right-0 group"
-              onClick={() => goNext(rendition)}
-              title="بعدی"
-            >
-              <svg
-                className="group-hover:!fill-slate-950 transition-all duration-300"
-                height="36px"
-                viewBox="0 -960 960 960"
-                width="36px"
-                fill="#444444"
-              >
-                <path d="m321-80-71-71 329-329-329-329 71-71 400 400L321-80Z" />
-              </svg>
-            </button>
+            <NavigateBtn type="next" click={()=>goNext(rendition)}/>
           )}
           <div
             id="viewRef"
@@ -225,28 +223,20 @@ const EpubReader = ({ url }) => {
             className={`w-full mx-auto ${!isMobile ? "!px-12" : "!px-2"}`}
           />
           {!isMobile && (
-            <button
-              className="text-2xl absolute h-full top-0 !left-0 group"
-              onClick={() => goPrev(rendition)}
-              title="قبلی"
-            >
-              <svg
-                className="group-hover:!fill-slate-950 transition-all duration-300"
-                height="36px"
-                viewBox="0 -960 960 960"
-                width="36px"
-                fill="#666"
-              >
-                <path d="M400-80 0-480l400-400 71 71-329 329 329 329-71 71Z" />
-              </svg>
-            </button>
+            <NavigateBtn type="prev" click={()=>goPrev(rendition)}/>
           )}
         </div>
         <div className="p-2 w-full">
           <span style={{ color: state.color }}>
-            صفحه {state?.current} از {state?.total}
+            صفحه {state?.current} از {state?.total} ({state.totalPage} کل)
           </span>{" "}
-          <input type="range" className="w-full" onChange={(e)=>changePage(e.target.value)} />
+          <input
+          ref={range}
+          className="w-full"
+          type="range"
+          onChange={(e) => changePage(e.target.value)}
+          defaultValue={rendition ? Math.ceil(rendition?.book.locations.percentageFromCfi(state.location)) : 0}
+        />
         </div>
       </div>
     </div>

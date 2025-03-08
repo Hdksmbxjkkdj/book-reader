@@ -103,3 +103,55 @@ body {
     transform: scale(1.4);
   }
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* انیمیشن slide-from-right */
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.custom-animation {
+  animation-duration: 2.5s;
+  animation-fill-mode: both;
+}
+
+.fade-in {
+  animation-name: fadeIn;
+}
+
+.slide-in-right {
+  animation-name: slideInRight;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #dadada;
+  cursor: pointer;
+  height: .25rem;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  margin-top: -12px; /* Centers thumb on the track */
+  background-color: #5cd5eb;
+  height: 2rem;
+  width: 1rem;    
+}
+input[type="range"]::-moz-range-thumb {
+  border: none; /*Removes extra border that FF applies*/
+  border-radius: 0; /*Removes default border-radius that FF applies*/
+  background-color: red;
+  mask: url("../../public/ic_seekbar_thumb.png");
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  mask-position: center;
+  height: 4.5rem;
+  width: .7rem;
+}
