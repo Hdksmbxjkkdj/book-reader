@@ -155,3 +155,10 @@ input[type="range"]::-moz-range-thumb {
   height: 4.5rem;
   width: .7rem;
 }
+
+#waveform ::part(cursor){
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  top: calc(50% - 6px);
+}

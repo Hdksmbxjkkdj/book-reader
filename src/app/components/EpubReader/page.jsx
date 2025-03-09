@@ -168,7 +168,6 @@ const EpubReader = ({ url }) => {
           val: location.start,
         });
       });
-      console.log(book.locations.percentageFromCfi(state.location));
       var startX = 0;
       var deltaX = 0;
       renditionInstance.on("touchstart", function (e) {
@@ -235,7 +234,6 @@ const EpubReader = ({ url }) => {
           className="w-full"
           type="range"
           onChange={(e) => changePage(e.target.value)}
-          defaultValue={rendition ? Math.ceil(rendition?.book.locations.percentageFromCfi(state.location)) : 0}
         />
         </div>
       </div>
