@@ -80,14 +80,14 @@ export default function Setting(dispatch, rendition, state) {
       val: title?.label,
     });
   }
-  const goNext = (rendition=rendition) => {
+  const goNext = (rendition = rendition) => {
     rendition.next();
   };
-  const changePage = (val)=> {
-    var cfi = rendition.book.locations.cfiFromPercentage(val/100);
-    rendition.display(cfi)
-  }
-  const goPrev = (rendition=rendition) => rendition && rendition.prev();
+  const changePage = (val) => {
+    var cfi = rendition.book.locations.cfiFromPercentage(val / 100);
+    rendition.display(cfi);
+  };
+  const goPrev = (rendition = rendition) => rendition && rendition.prev();
   return {
     changefontSize,
     changeTheme,
@@ -99,6 +99,6 @@ export default function Setting(dispatch, rendition, state) {
     goNext,
     goPrev,
     setTitle,
-    changePage
+    changePage,
   };
 }

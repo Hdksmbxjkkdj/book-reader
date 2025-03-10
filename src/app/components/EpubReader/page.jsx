@@ -234,6 +234,7 @@ const EpubReader = ({ url }) => {
           className="w-full"
           type="range"
           onChange={(e) => changePage(e.target.value)}
+          defaultValue={0}
         />
         </div>
       </div>
