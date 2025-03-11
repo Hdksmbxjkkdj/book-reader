@@ -227,7 +227,7 @@ export default function EpubHeader({ state, rendition, func }) {
                 </div>
               </div>
             </div>
-          <button className="relative" title="بازگشت به خانه">
+          <Link href={"/"} className="relative" title="بازگشت به خانه">
             <svg
               height="24px"
               viewBox="0 -960 960 960"
@@ -236,7 +236,7 @@ export default function EpubHeader({ state, rendition, func }) {
             >
               <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
             </svg>
-          </button>
+          </Link>
         </div>
       </div>
     </>

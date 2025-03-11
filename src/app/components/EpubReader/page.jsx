@@ -7,7 +7,7 @@ import { isMobile } from "react-device-detect";
 import EpubHeader from "../epubHeader";
 import NavigateBtn from "../NavigateBtn";
 const EpubReader = ({ url }) => {
-  const initial = JSON.parse(sessionStorage.getItem("setting"));
+  const [ init,setInit] = useState(JSON.parse(sessionStorage.getItem("setting")))
   const initialValue = {
     name: "",
     title: "",
@@ -28,13 +28,18 @@ const EpubReader = ({ url }) => {
     location: 0,
   };
   const viewerRef = useRef(null);
-  const range = useRef()
+  const range = useRef();
+  const bookRef = useRef(null);
   const [rendition, setRendition] = useState(null);
   const [state, dispatch] = useReducer(
     reducerFunction,
-    initial != null ? initial : initialValue
+    Object.keys(init).length!=0 ? init : initialValue
   );
-  sessionStorage.setItem("setting", JSON.stringify(state));
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("setting", JSON.stringify(state));
+    }
+  }, [state]);
   function reducerFunction(state, action) {
     switch (action.type) {
       case "setName": {
@@ -55,14 +60,12 @@ const EpubReader = ({ url }) => {
       case "settotal": {
         return { ...state, totalPage: action.val };
       }
-      case "larger": {
-        if (state.fontSize > 250) return state;
-        return { ...state, fontSize: action.val };
-      }
-      case "smaller": {
-        if (state.fontSize < 75) return state;
-        return { ...state, fontSize: action.val };
-      }
+      case "larger":
+        return { ...state, fontSize: Math.min(state.fontSize + 10, 250) };
+
+      case "smaller":
+        return { ...state, fontSize: Math.max(state.fontSize - 10, 75) };
+
       case "theme": {
         return {
           ...state,
@@ -100,14 +103,16 @@ const EpubReader = ({ url }) => {
       }
     }
   }
-  const { goNext,goPrev,setTitle, changePage, ...others } = Setting(
+  const { goNext, goPrev, setTitle, changePage, ...others } = Setting(
     dispatch,
     rendition,
     state
   );
   useEffect(() => {
     const loadbook = async () => {
+      if (!viewerRef.current) return;
       const book = Epub(url);
+      bookRef.current = book;
       book.loaded.metadata.then((metadata) => {
         dispatch({
           type: "setName",
@@ -149,9 +154,9 @@ const EpubReader = ({ url }) => {
       });
       await book.locations.generate(2285);
       dispatch({
-        type:"settotal",
-        val:book.locations.total
-      })
+        type: "settotal",
+        val: book.locations.total,
+      });
       renditionInstance.on("locationChanged", async function (location) {
         setTitle(renditionInstance);
         dispatch({
@@ -193,7 +198,7 @@ const EpubReader = ({ url }) => {
     };
     loadbook();
     return () => {
-      book.destroy();
+      bookRef.current?.destroy();
     };
   }, [url]);
   return (
@@ -214,7 +219,7 @@ const EpubReader = ({ url }) => {
         />
         <div className="flex items-center justify-center relative">
           {!isMobile && (
-            <NavigateBtn type="next" click={()=>goNext(rendition)}/>
+            <NavigateBtn type="next" click={() => goNext(rendition)} />
           )}
           <div
             id="viewRef"
@@ -222,7 +227,7 @@ const EpubReader = ({ url }) => {
             className={`w-full mx-auto ${!isMobile ? "!px-12" : "!px-2"}`}
           />
           {!isMobile && (
-            <NavigateBtn type="prev" click={()=>goPrev(rendition)}/>
+            <NavigateBtn type="prev" click={() => goPrev(rendition)} />
           )}
         </div>
         <div className="p-2 w-full">
@@ -230,12 +235,12 @@ const EpubReader = ({ url }) => {
             صفحه {state?.current} از {state?.total} ({state.totalPage} کل)
           </span>{" "}
           <input
-          ref={range}
-          className="w-full"
-          type="range"
-          onChange={(e) => changePage(e.target.value)}
-          defaultValue={0}
-        />
+            ref={range}
+            className="w-full"
+            type="range"
+            onChange={(e) => changePage(e.target.value)}
+            defaultValue={0}
+          />
         </div>
       </div>
     </div>

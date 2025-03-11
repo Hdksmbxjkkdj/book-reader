@@ -64,9 +64,6 @@ const Waveform = ({ url }) => {
       wavesurfer.on("pause", () => setIsPlaying(false));
     };
     load();
-    return () => {
-      load.wavesurfer.distroy();
-    };
   }, [url]);
 
   function TimeLine(sec) {
@@ -85,6 +82,7 @@ const Waveform = ({ url }) => {
   };
   function handleClose() {
     isPlaying && waver.pause();
+    waver.distroy;
     if (player.current) player.current.style.display = "none";
   }
   function handleSpeed() {
