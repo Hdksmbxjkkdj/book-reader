@@ -3,21 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import { ReactReader } from "react-reader";
 import { motion, AnimatePresence } from "framer-motion";
-import useLocalStorageState from 'use-local-storage-state'
+import useLocalStorageState from "use-local-storage-state";
 
 const STORAGE_KEY = "epub-location";
 
 export default function BookReader({ url }) {
   const [settings, setSettings] = useState(false);
-  const [location, setLocation] = useLocalStorageState(
-    'persist-location',
-    {
-      defaultValue: 0,
-    }
-  )
+  const [location, setLocation] = useLocalStorageState("persist-location", {
+    defaultValue: 0,
+  });
   const [fontSize, setFontSize] = useState(100);
   const [theme, setTheme] = useState("light");
-  const [margin, setMargin] = useState(0);
+  const [align, setAlign] = useState(0);
   const [lineHeight, setLineHeight] = useState(1.6);
   const [rendition, setRendition] = useState(null);
   const [toc, setToc] = useState([]);
@@ -28,6 +25,13 @@ export default function BookReader({ url }) {
   const isValidCfi = (cfi) => {
     return typeof cfi === "string" && cfi.startsWith("epubcfi(");
   };
+
+  function reset() {
+    setAlign(0);
+    setLineHeight(1.6);
+    setFontSize(100);
+    setTheme("light");
+  }
 
   useEffect(() => {
     if (rendition) {
@@ -45,8 +49,11 @@ export default function BookReader({ url }) {
     if (rendition) updateTheme(rendition, theme);
   }, [theme]);
   useEffect(() => {
-    if (rendition) updateMargin(rendition, theme);
-  }, [theme]);
+    if (rendition) updateAlign(rendition, align);
+  }, [align]);
+  useEffect(() => {
+    if (rendition) updateLineHeight(rendition, lineHeight);
+  }, [lineHeight]);
 
   function updateTheme(rendition, theme) {
     const themes = rendition.themes;
@@ -68,37 +75,58 @@ export default function BookReader({ url }) {
       }
     }
   }
-  function updateMargin(rendition, theme) {
+  function updateAlign(rendition, align) {
     const themes = rendition.themes;
-    switch (theme) {
+    switch (align) {
       case 0: {
-        themes.register(theme, {
+        themes.update("custom", {
+          body: {
+            "text-align": "right !important",
+          },
           p: {
             "text-align": "right !important",
           },
         });
-        themes.select(theme);
+        themes.select("custom");
         break;
       }
       case 1: {
-        themes.register(theme, {
+        themes.register("custom", {
+          body: {
+            "text-align": "center !important",
+          },
           p: {
             "text-align": "center !important",
           },
         });
-        themes.select(theme);
+        themes.select("custom");
         break;
       }
       case 2: {
-        themes.register(theme, {
+        themes.register("custom", {
+          body: {
+            "text-align": "justify !important",
+          },
           p: {
             "text-align": "justify !important",
           },
         });
-        themes.select(theme);
+        themes.select("custom");
         break;
       }
     }
+  }
+  function updateLineHeight(rendition, lineHeight) {
+    const themes = rendition.themes;
+    themes.register("lineheight", {
+      body: {
+        "line-height": lineHeight,
+      },
+      p: {
+        "line-height": lineHeight,
+      },
+    });
+    themes.select("lineheight");
   }
 
   return (
@@ -134,6 +162,7 @@ export default function BookReader({ url }) {
                 rotateZ: 90,
               }}
               whileTap={{ rotateZ: 405 }}
+              onClick={reset}
               className="absolute left-2 top-2"
               title="بازنشانی تنظیمات"
             >
@@ -147,7 +176,7 @@ export default function BookReader({ url }) {
               </svg>
             </motion.button>
             <div className="mt-4 basis-auto flex relative">
-              <button onClick={() => setMargin(0)} className="z-10 px-2 py-1">
+              <button onClick={() => setAlign(0)} className="z-10 px-2 py-1">
                 <svg
                   height="24px"
                   viewBox="0 -960 960 960"
@@ -157,7 +186,7 @@ export default function BookReader({ url }) {
                   <path d="M120-760v-80h720v80H120Zm240 160v-80h480v80H360ZM120-440v-80h720v80H120Zm240 160v-80h480v80H360ZM120-120v-80h720v80H120Z" />
                 </svg>
               </button>
-              <button onClick={() => setMargin(1)} className="z-10 px-2 py-1">
+              <button onClick={() => setAlign(1)} className="z-10 px-2 py-1">
                 <svg
                   height="24px"
                   viewBox="0 -960 960 960"
@@ -167,7 +196,7 @@ export default function BookReader({ url }) {
                   <path d="M120-120v-80h720v80H120Zm160-160v-80h400v80H280ZM120-440v-80h720v80H120Zm160-160v-80h400v80H280ZM120-760v-80h720v80H120Z" />
                 </svg>
               </button>
-              <button onClick={() => setMargin(2)} className="z-10 px-2 py-1">
+              <button onClick={() => setAlign(2)} className="z-10 px-2 py-1">
                 <svg
                   height="24px"
                   viewBox="0 -960 960 960"
@@ -179,7 +208,7 @@ export default function BookReader({ url }) {
               </button>
               <motion.div
                 style={{
-                  transform: `translateX(-${margin * 2.5}rem)`,
+                  transform: `translateX(-${align * 2.5}rem)`,
                   transition: "transform 0.3s ease",
                 }}
                 className="absolute top-0 right-0 bottom-0 w-[2.5rem] bg-red-500 rounded-md z-0"
