@@ -7,22 +7,37 @@ const EpubReader = ({ url }) => {
   const [totalPages, setTotalPages] = useState(0);
   const [rend, setRend] = useState();
   const [counter, setCounter] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const range = useRef();
+  const viewer = useRef(null);
 
   useEffect(() => {
     const loadBook = async () => {
       const book = ePub(url);
-      const rendition = book.renderTo("reader", {
+      book.loaded.manifest.then((manifest) =>
+        console.log("📚 Manifest:", manifest)
+      );
+      book.loaded.spine.then((spine) => console.log("📚 Spine:", spine));
+
+      const rendition = book.renderTo(viewer.current, {
         width: "100%",
         height: "75vh",
         spread: "none",
       });
+      await rendition.started
+      console.log("✅ Rendition Object:", rendition);
       // رندر کتاب
-      await book.ready;
-      await book.locations.generate(2285);
-      await rendition.display();
-      setLoading(false);
+      await rendition
+        .display(0)
+        .then(() => {
+          console.log("✅ Display success !");
+        })
+        .catch((err) => {
+          console.error("❌ Error in rendering", err);
+        });
+
+        console.log(rendition.location);
+      // setLoading(false);
 
       setRend(rendition);
 
@@ -62,7 +77,7 @@ const EpubReader = ({ url }) => {
         )
       )
     );
-    const percentage = val
+    const percentage = val;
     range.current.style.background = `linear-gradient(to left, #ff0000 0%, #ff0000 ${percentage}%, #d3d3d3 ${percentage}%, #d3d3d3 100%)`;
   }
 
@@ -75,7 +90,7 @@ const EpubReader = ({ url }) => {
           <div className="h-5 w-5 bg-red-500 shadow-md rounded-full ball"></div>
         </div>
       )}
-      <div id="reader"></div>
+      <div ref={viewer} id="reader"></div>
       <button onClick={next}>next</button>
       <br />
       <button onClick={next100}>next 100</button>
@@ -87,7 +102,7 @@ const EpubReader = ({ url }) => {
         ref={range}
         className="w-full"
         type="range"
-        onChange={(e) => handleChange(e.target.value,e.target)}
+        onChange={(e) => handleChange(e.target.value, e.target)}
       />
     </div>
   );

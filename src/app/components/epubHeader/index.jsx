@@ -1,5 +1,8 @@
+"use client"
+
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from 'next/navigation'
 
 export default function EpubHeader({ state, rendition, func }) {
   const {
@@ -11,41 +14,46 @@ export default function EpubHeader({ state, rendition, func }) {
     handleList,
     handleSetting,
   } = func;
+  const router = useRouter();
   return (
     <>
       <div className="flex justify-between items-center p-2 relative">
-      <div
-              className={`absolute top-full z-50 lg:left-0 right- border border-slate-300 cursor-default rounded-sm w-72 h-96 overflow-auto ${
-                state?.list ? "block" : "hidden"
-              }`}
-              style={{ backgroundColor: state?.background }}
-            >
-              <ul className="flex flex-col">
-                {state?.lists?.map((item, i) => {
-                  return (
-                    <li
-                      key={item?.id}
-                      className={`text-right border-b px-4 py-3 overflow-hidden hover:bg-gray-200/50 cursor-pointer ${state.location ==item.href && 'bg-gray-200/50'}`}
-                      onClick={() => rendition.display(item?.href)}
-                    >
-                      <span
-                        className="text-nowrap text-xs"
-                        style={{ color: state?.color }}
-                      >
-                        {i + 1} .{item?.label}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-        <Link href="/" className="hidden lg:block"><Image
-          src="/logo.png"
-          alt="logo"
-          width={64}
-          height={64}
-          style={{filter:"drop-shadow(0 0 .3px #0067b6) !important"}}
-        /></Link>
+        <div
+          className={`absolute top-full z-50 lg:left-0 right- border border-slate-300 cursor-default rounded-sm w-72 h-96 overflow-auto ${
+            state?.list ? "block" : "hidden"
+          }`}
+          style={{ backgroundColor: state?.background }}
+        >
+          <ul className="flex flex-col">
+            {state?.lists?.map((item, i) => {
+              return (
+                <li
+                  key={item?.id}
+                  className={`text-right border-b px-4 py-3 overflow-hidden hover:bg-gray-200/50 cursor-pointer ${
+                    state.location == item.href && "bg-gray-200/50"
+                  }`}
+                  onClick={() => rendition.display(item?.href)}
+                >
+                  <span
+                    className="text-nowrap text-xs"
+                    style={{ color: state?.color }}
+                  >
+                    {i + 1} .{item?.label}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+        <Link href="/" className="hidden lg:block">
+          <Image
+            src="/logo.png"
+            alt="logo"
+            width={64}
+            height={64}
+            style={{ filter: "drop-shadow(0 0 .3px #0067b6) !important" }}
+          />
+        </Link>
         <button className="lg:hidden" onClick={handleList}>
           <svg
             height="24px"
@@ -92,142 +100,146 @@ export default function EpubHeader({ state, rendition, func }) {
               تنظیمات
             </span>
           </button>
-            <div className={`${state?.setting ? "block" : "hidden"} menu`}>
-              <div className="flex gap-5 p-4">
-                <div
-                  onClick={() => changeTheme("white", "black", "#ececec", 1)}
-                  className={`bg-white text-black selectTheme ${
-                    state?.themeId == 1 ? "active" : ""
-                  }`}
-                >
-                  آ
-                </div>
-                <div
-                  onClick={() => changeTheme("#f6efde ", "black", "#f2e5cb", 2)}
-                  className={`bg-amber-100 text-black selectTheme ${
-                    state?.themeId == 2 ? "active" : ""
-                  }`}
-                >
-                  آ
-                </div>
-                <div
-                  onClick={() => changeTheme("#484848 ", "white", "#484848", 3)}
-                  className={`bg-emerald-800 text-white selectTheme ${
-                    state?.themeId == 3 ? "active" : ""
-                  }`}
-                >
-                  آ
-                </div>
-                <div
-                  onClick={() => changeTheme("#121212", "white", "black", 4)}
-                  className={`bg-black text-white selectTheme ${
-                    state?.themeId == 4 ? "active" : ""
-                  }`}
-                >
-                  آ
-                </div>
+          <div className={`${state?.setting ? "block" : "hidden"} menu`}>
+            <div className="flex gap-5 p-4">
+              <div
+                onClick={() => changeTheme("white", "black", "#ececec", 1)}
+                className={`bg-white text-black selectTheme ${
+                  state?.themeId == 1 ? "active" : ""
+                }`}
+              >
+                آ
               </div>
-              <div className="flex h-16">
-                <div
-                  className="typographySettings text-slate-500 text-2xl"
-                  onClick={() => changefontSize("larger")}
+              <div
+                onClick={() => changeTheme("#f6efde ", "black", "#f2e5cb", 2)}
+                className={`bg-amber-100 text-black selectTheme ${
+                  state?.themeId == 2 ? "active" : ""
+                }`}
+              >
+                آ
+              </div>
+              <div
+                onClick={() => changeTheme("#484848 ", "white", "#484848", 3)}
+                className={`bg-emerald-800 text-white selectTheme ${
+                  state?.themeId == 3 ? "active" : ""
+                }`}
+              >
+                آ
+              </div>
+              <div
+                onClick={() => changeTheme("#121212", "white", "black", 4)}
+                className={`bg-black text-white selectTheme ${
+                  state?.themeId == 4 ? "active" : ""
+                }`}
+              >
+                آ
+              </div>
+            </div>
+            <div className="flex h-16">
+              <div
+                className="typographySettings text-slate-500 text-2xl"
+                onClick={() => changefontSize("larger")}
+              >
+                الف
+              </div>
+              <div
+                className="typographySettings text-slate-500"
+                onClick={() => changefontSize("smaller")}
+              >
+                الف
+              </div>
+              <div className="typographySettings">
+                <svg
+                  height="24px"
+                  viewBox="0 -960 960 960"
+                  width="24px"
+                  fill="#64748b"
                 >
-                  الف
-                </div>
-                <div
-                  className="typographySettings text-slate-500"
-                  onClick={() => changefontSize("smaller")}
+                  <path d="M480-80q-75 0-140.5-28.5t-114-77q-48.5-48.5-77-114T120-440h80q0 117 81.5 198.5T480-160q117 0 198.5-81.5T760-440q0-117-81.5-198.5T480-720h-6l62 62-56 58-160-160 160-160 56 58-62 62h6q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-440q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-80Z" />
+                </svg>
+              </div>
+              <div
+                className="typographySettings"
+                onClick={() => handleLineHeight("higher")}
+              >
+                <svg
+                  height="24px"
+                  viewBox="0 -960 960 960"
+                  width="24px"
+                  fill="#5f6368"
                 >
-                  الف
-                </div>
-                <div className="typographySettings">
-                  <svg
-                    height="24px"
-                    viewBox="0 -960 960 960"
-                    width="24px"
-                    fill="#64748b"
-                  >
-                    <path d="M480-80q-75 0-140.5-28.5t-114-77q-48.5-48.5-77-114T120-440h80q0 117 81.5 198.5T480-160q117 0 198.5-81.5T760-440q0-117-81.5-198.5T480-720h-6l62 62-56 58-160-160 160-160 56 58-62 62h6q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-440q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-80Z" />
-                  </svg>
-                </div>
-                <div
-                  className="typographySettings"
-                  onClick={() => handleLineHeight("higher")}
+                  <path d="M240-160 80-320l56-56 64 62v-332l-64 62-56-56 160-160 160 160-56 56-64-62v332l64-62 56 56-160 160Zm240-40v-80h400v80H480Zm0-240v-80h400v80H480Zm0-240v-80h400v80H480Z" />
+                </svg>
+              </div>
+              <div
+                className="typographySettings"
+                onClick={() => handleLineHeight("lower")}
+              >
+                <svg
+                  height="24px"
+                  viewBox="0 -960 960 960"
+                  width="24px"
+                  fill="#64748b"
                 >
+                  <path d="M440-80v-168l-64 64-56-56 160-160 160 160-56 56-64-64v168h-80ZM160-440v-80h640v80H160Zm320-120L320-720l56-56 64 64v-168h80v168l64-64 56 56-160 160Z" />
+                </svg>
+              </div>
+            </div>
+            <div className="flex h-16">
+              <div
+                className="typographySettings"
+                onClick={() => handleAlign("right")}
+              >
+                <svg
+                  height="24px"
+                  viewBox="0 -960 960 960"
+                  width="24px"
+                  fill="#64748b"
+                >
+                  <path d="M120-760v-80h720v80H120Zm240 160v-80h480v80H360ZM120-440v-80h720v80H120Zm240 160v-80h480v80H360ZM120-120v-80h720v80H120Z" />
+                </svg>
+              </div>
+              <div
+                className="typographySettings"
+                onClick={() => handleAlign("justify")}
+              >
+                <svg
+                  height="24px"
+                  viewBox="0 -960 960 960"
+                  width="24px"
+                  fill="#64748b"
+                >
+                  <path d="M120-120v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Z" />
+                </svg>
+              </div>
+              <div className="typographySettings" onClick={handleFullscreen}>
+                {state?.fullScreen ? (
                   <svg
                     height="24px"
                     viewBox="0 -960 960 960"
                     width="24px"
                     fill="#5f6368"
                   >
-                    <path d="M240-160 80-320l56-56 64 62v-332l-64 62-56-56 160-160 160 160-56 56-64-62v332l64-62 56 56-160 160Zm240-40v-80h400v80H480Zm0-240v-80h400v80H480Zm0-240v-80h400v80H480Z" />
+                    <path d="M240-120v-120H120v-80h200v200h-80Zm400 0v-200h200v80H720v120h-80ZM120-640v-80h120v-120h80v200H120Zm520 0v-200h80v120h120v80H640Z" />
                   </svg>
-                </div>
-                <div
-                  className="typographySettings"
-                  onClick={() => handleLineHeight("lower")}
-                >
+                ) : (
                   <svg
                     height="24px"
                     viewBox="0 -960 960 960"
                     width="24px"
                     fill="#64748b"
                   >
-                    <path d="M440-80v-168l-64 64-56-56 160-160 160 160-56 56-64-64v168h-80ZM160-440v-80h640v80H160Zm320-120L320-720l56-56 64 64v-168h80v168l64-64 56 56-160 160Z" />
+                    <path d="M120-120v-200h80v120h120v80H120Zm520 0v-80h120v-120h80v200H640ZM120-640v-200h200v80H200v120h-80Zm640 0v-120H640v-80h200v200h-80Z" />
                   </svg>
-                </div>
-              </div>
-              <div className="flex h-16">
-                <div
-                  className="typographySettings"
-                  onClick={() => handleAlign("right")}
-                >
-                  <svg
-                    height="24px"
-                    viewBox="0 -960 960 960"
-                    width="24px"
-                    fill="#64748b"
-                  >
-                    <path d="M120-760v-80h720v80H120Zm240 160v-80h480v80H360ZM120-440v-80h720v80H120Zm240 160v-80h480v80H360ZM120-120v-80h720v80H120Z" />
-                  </svg>
-                </div>
-                <div
-                  className="typographySettings"
-                  onClick={() => handleAlign("justify")}
-                >
-                  <svg
-                    height="24px"
-                    viewBox="0 -960 960 960"
-                    width="24px"
-                    fill="#64748b"
-                  >
-                    <path d="M120-120v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Z" />
-                  </svg>
-                </div>
-                <div className="typographySettings" onClick={handleFullscreen}>
-                  {state?.fullScreen ? (
-                    <svg
-                      height="24px"
-                      viewBox="0 -960 960 960"
-                      width="24px"
-                      fill="#5f6368"
-                    >
-                      <path d="M240-120v-120H120v-80h200v200h-80Zm400 0v-200h200v80H720v120h-80ZM120-640v-80h120v-120h80v200H120Zm520 0v-200h80v120h120v80H640Z" />
-                    </svg>
-                  ) : (
-                    <svg
-                      height="24px"
-                      viewBox="0 -960 960 960"
-                      width="24px"
-                      fill="#64748b"
-                    >
-                      <path d="M120-120v-200h80v120h120v80H120Zm520 0v-80h120v-120h80v200H640ZM120-640v-200h200v80H200v120h-80Zm640 0v-120H640v-80h200v200h-80Z" />
-                    </svg>
-                  )}
-                </div>
+                )}
               </div>
             </div>
-          <Link href={"/"} className="relative" title="بازگشت به خانه">
+          </div>
+          <button
+            onClick={() => router.back()}
+            className="relative"
+            title="بازگشت به خانه"
+          >
             <svg
               height="24px"
               viewBox="0 -960 960 960"
@@ -236,7 +248,7 @@ export default function EpubHeader({ state, rendition, func }) {
             >
               <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
             </svg>
-          </Link>
+          </button>
         </div>
       </div>
     </>

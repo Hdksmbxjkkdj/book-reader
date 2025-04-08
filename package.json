@@ -9,11 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "epubjs": "^0.3.93",
+    "epubjs": "^0.3.88",
+    "framer-motion": "^12.6.3",
     "next": "15.1.7",
     "react": "^19.0.0",
     "react-device-detect": "^2.2.3",
     "react-dom": "^19.0.0",
+    "react-reader": "^2.0.13",
+    "use-local-storage-state": "^19.5.0",
     "wavesurfer.js": "^7.9.1"
   },
   "devDependencies": {

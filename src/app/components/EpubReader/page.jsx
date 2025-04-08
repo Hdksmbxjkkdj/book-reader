@@ -4,10 +4,9 @@ import Setting from "@/app/utils/Setting";
 import Epub from "epubjs";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { isMobile } from "react-device-detect";
-import EpubHeader from "../epubHeader";
 import NavigateBtn from "../NavigateBtn";
+import EpubHeader from "../epubHeader";
 const EpubReader = ({ url }) => {
-  const [ init,setInit] = useState(JSON.parse(sessionStorage.getItem("setting")))
   const initialValue = {
     name: "",
     title: "",
@@ -27,13 +26,14 @@ const EpubReader = ({ url }) => {
     align: "rtl",
     location: 0,
   };
+  const [init, setInit] = useState(initialValue);
   const viewerRef = useRef(null);
   const range = useRef();
   const bookRef = useRef(null);
   const [rendition, setRendition] = useState(null);
   const [state, dispatch] = useReducer(
     reducerFunction,
-    Object.keys(init).length!=0 ? init : initialValue
+    Object.keys(init).length != 0 ? init : initialValue
   );
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -110,7 +110,6 @@ const EpubReader = ({ url }) => {
   );
   useEffect(() => {
     const loadbook = async () => {
-      if (!viewerRef.current) return;
       const book = Epub(url);
       bookRef.current = book;
       book.loaded.metadata.then((metadata) => {
@@ -120,6 +119,9 @@ const EpubReader = ({ url }) => {
         });
         renditionInstance.display(state.location);
       });
+      if (!viewerRef.current) {
+        return;
+      }
       const renditionInstance = book.renderTo(viewerRef.current, {
         width: "100%",
         height: "80vh",
@@ -158,6 +160,7 @@ const EpubReader = ({ url }) => {
         val: book.locations.total,
       });
       renditionInstance.on("locationChanged", async function (location) {
+        console.log(book.locations.percentageFromCfi(location.start));
         setTitle(renditionInstance);
         dispatch({
           type: "changepage",
@@ -198,7 +201,10 @@ const EpubReader = ({ url }) => {
     };
     loadbook();
     return () => {
+      rendition?.destroy();
       bookRef.current?.destroy();
+      setRendition(null);
+      bookRef.current = null;
     };
   }, [url]);
   return (
@@ -239,7 +245,7 @@ const EpubReader = ({ url }) => {
             className="w-full"
             type="range"
             onChange={(e) => changePage(e.target.value)}
-            defaultValue={0}
+            value={state.current}
           />
         </div>
       </div>

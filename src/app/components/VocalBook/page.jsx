@@ -14,9 +14,13 @@ const Waveform = ({ url }) => {
     name: "تست",
     auther: "علی اصغر هنرمند",
   };
+  var count = 0;
 
   useEffect(() => {
     const load = async () => {
+      if (count > 0) {
+        return
+      }
       // مقداردهی اولیه Wavesurfer
       const wavesurfer = WaveSurfer.create({
         container: waveformRef.current,
@@ -37,6 +41,8 @@ const Waveform = ({ url }) => {
           ctx.stroke();
         },
       });
+      count++
+      console.log("waver created");
       const promise = new Promise(function (resolve, reject) {
         wavesurfer.on("ready", (dur) => {
           const sec = dur.toFixed(0);
@@ -64,6 +70,10 @@ const Waveform = ({ url }) => {
       wavesurfer.on("pause", () => setIsPlaying(false));
     };
     load();
+    return () => {
+      waver?.destroy();
+      console.log("waver destroied");
+    };
   }, [url]);
 
   function TimeLine(sec) {

@@ -1,14 +1,15 @@
 "use client";
 
+import FormatNumber from "@/app/utils/application/FormatNumber";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function MyLibrary() {
-  const [menu,setMenu] = useState(false)
+  const [menu, setMenu] = useState(false);
   const user = {
     name: "علی قربانی",
     phone: "09935617912",
-    cash:0,
+    cash: 0,
     books: [
       {
         id: 1,
@@ -32,9 +33,9 @@ export default function MyLibrary() {
     e_books: [
       {
         id: 1,
-        name: "کتاب وب گرد (جلد اول، موسسه)",
-        auther: "معین فرد",
-        image: "",
+        name: "آلیس در سرزمین عجاییب (زبان اصلی)",
+        auther: "لوییس کارول",
+        image: "/alice.jpg",
       },
       {
         id: 2,
@@ -84,7 +85,12 @@ export default function MyLibrary() {
                 />
               </div>
             </div>
-            <div className="relative" onClick={()=>{setMenu(!menu)}}>
+            <div
+              className="relative"
+              onClick={() => {
+                setMenu(!menu);
+              }}
+            >
               <Link
                 href={"#"}
                 className="rounded-full bg-gray-300/80 flex p-2 items-center gap-1 hover:bg-gray-300/100"
@@ -104,67 +110,73 @@ export default function MyLibrary() {
                   </svg>
                 </div>
               </Link>
-              {menu&&<div className="absolute left-0 !z-50 top-14">
-                <div className="bg-[#f5f5f5] p-4 shadow-lg rounded-2xl">
-                  <ul className="w-[314px] flex flex-col gap-0">
-                    <li className="hover:bg-gray-200 p-3">
-                      <div className="flex justify-between items-center">
-                        <div className="flex gap-3 items-center">
-                          <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center text-orange-500 font-semibold text-xl">
-                            {FirstWord(user.name)}
+              {menu && (
+                <div className="absolute left-0 !z-50 top-14">
+                  <div className="bg-[#f5f5f5] p-4 shadow-lg rounded-2xl">
+                    <ul className="w-[314px] flex flex-col gap-0">
+                      <li className="hover:bg-gray-200 p-3">
+                        <div className="flex justify-between items-center">
+                          <div className="flex gap-3 items-center">
+                            <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center text-orange-500 font-semibold text-xl">
+                              {FirstWord(user.name)}
+                            </div>
+                            <div>
+                              <p className="font-semibold">{user.name}</p>
+                              <p className="font-semibold">{user.phone}</p>
+                            </div>
                           </div>
                           <div>
-                            <p className="font-semibold">{user.name}</p>
-                            <p className="font-semibold">{user.phone}</p>
+                            <svg
+                              height="16px"
+                              viewBox="0 -960 960 960"
+                              width="16px"
+                              fill="#5f6368"
+                            >
+                              <path d="M400-80 0-480l400-400 71 71-329 329 329 329-71 71Z" />
+                            </svg>
                           </div>
                         </div>
-                        <div>
-                          <svg
-                            height="16px"
-                            viewBox="0 -960 960 960"
-                            width="16px"
-                            fill="#5f6368"
-                          >
-                            <path d="M400-80 0-480l400-400 71 71-329 329 329 329-71 71Z" />
-                          </svg>
+                      </li>
+                      <li className="hover:bg-gray-200 p-2">
+                        <div className="flex justify-between items-center">
+                          <p className="font-semibold ">افزایش اعتبار</p>
+                          <p className="font-semibold ">
+                            (موجودی {FormatNumber(user.cash)} تومان)
+                          </p>
                         </div>
-                      </div>
-                    </li>
-                    <li className="hover:bg-gray-200 p-2">
-                      <div className="flex justify-between items-center">
-                        <p className="font-semibold ">افزایش اعتبار</p>
-                        <p className="font-semibold ">(موجودی {user.cash} تومان)</p>
-                      </div>
-                    </li>
-                    <li className="hover:bg-gray-200 p-2">
-                      <p className="font-semibold ">خرید اشتراک بینهایت</p>
-                    </li>
-                    <hr className="border-slate-400 my-2" />
-                    <li className="hover:bg-gray-200 p-2">
-                      <p className="text-xl ">کتاب های من</p>
-                    </li>
-                    <li className="hover:bg-gray-200 p-2">
-                    <p className="text-xl ">رویش</p>
-                    </li>
-                    <li className="hover:bg-gray-200 p-2">
-                    <p className="text-xl ">تاریخچه پرداخت های الکترونیکی</p>
-                    </li>
-                    <li className="hover:bg-gray-200 p-2">
-                    <p className="text-xl ">کارنامه مطالعه</p>
-                    </li>
-                    <hr className="border-slate-400 my-2" />
-                    <li className="hover:bg-gray-200 p-2">
-                    <p className="text-xl ">ارتباط با پشتیبانی</p>
-                    </li>
-                    <li className="hover:bg-gray-200 p-2">
-                    <p className="text-xl ">مدریت دستگاه ها</p>
-                    </li>
-                    <li className="hover:bg-gray-200 p-2">
-                    <p className="text-xl ">خروج از حساب کاربری</p>
-                    </li>
-                  </ul>
+                      </li>
+                      <li className="hover:bg-gray-200 p-2">
+                        <p className="font-semibold ">خرید اشتراک بینهایت</p>
+                      </li>
+                      <hr className="border-slate-400 my-2" />
+                      <li className="hover:bg-gray-200 p-2">
+                        <p className="text-xl ">کتاب های من</p>
+                      </li>
+                      <li className="hover:bg-gray-200 p-2">
+                        <p className="text-xl ">رویش</p>
+                      </li>
+                      <li className="hover:bg-gray-200 p-2">
+                        <p className="text-xl ">
+                          تاریخچه پرداخت های الکترونیکی
+                        </p>
+                      </li>
+                      <li className="hover:bg-gray-200 p-2">
+                        <p className="text-xl ">کارنامه مطالعه</p>
+                      </li>
+                      <hr className="border-slate-400 my-2" />
+                      <li className="hover:bg-gray-200 p-2">
+                        <p className="text-xl ">ارتباط با پشتیبانی</p>
+                      </li>
+                      <li className="hover:bg-gray-200 p-2">
+                        <p className="text-xl ">مدریت دستگاه ها</p>
+                      </li>
+                      <li className="hover:bg-gray-200 p-2">
+                        <p className="text-xl ">خروج از حساب کاربری</p>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
-              </div>}
+              )}
             </div>
           </div>
           <div className="flex justify-between items-scratch mt-4 pb-4 relative">
@@ -249,14 +261,10 @@ export default function MyLibrary() {
                 <Link href={"/pages/vBook"}>
                   <img
                     className="w-full rounded-md h-3/5 object-cover object-center"
-                    src={
-                      book.image ? `/images/${book.image}` : "/defaultbook.jpg"
-                    }
+                    src={book.image ? book.image : "/defaultbook.jpg"}
                     alt="book"
                   />
-                  <p className="font-semibold  line-clamp-2">
-                    {book.name}
-                  </p>
+                  <p className="font-semibold  line-clamp-2">{book.name}</p>
                   <p className="text-gray-500 text-sm mt-1">{book.auther}</p>
                 </Link>
               </div>
@@ -271,14 +279,10 @@ export default function MyLibrary() {
                 <Link href={"/pages/eBook"}>
                   <img
                     className="w-full rounded-md h-3/5 object-cover object-center"
-                    src={
-                      book.image ? `/images/${book.image}` : "/defaultbook.jpg"
-                    }
+                    src={book.image ? book.image : "/defaultbook.jpg"}
                     alt="book"
                   />
-                  <p className="font-semibold  line-clamp-2">
-                    {book.name}
-                  </p>
+                  <p className="font-semibold  line-clamp-2">{book.name}</p>
                   <p className="text-gray-500 text-sm mt-1">{book.auther}</p>
                 </Link>
               </div>
