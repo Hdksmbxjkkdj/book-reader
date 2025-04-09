@@ -25,6 +25,7 @@ const EpubReader = ({ url }) => {
     fullScreen: false,
     align: "rtl",
     location: 0,
+    percentage: 0,
   };
   const [init, setInit] = useState(initialValue);
   const viewerRef = useRef(null);
@@ -52,7 +53,7 @@ const EpubReader = ({ url }) => {
         return { ...state, lists: action.val };
       }
       case "changepage": {
-        return { ...state, current: action.val };
+        return { ...state, current: action.val, percentage: action.percentage };
       }
       case "showtotal": {
         return { ...state, total: action.val };
@@ -160,11 +161,12 @@ const EpubReader = ({ url }) => {
         val: book.locations.total,
       });
       renditionInstance.on("locationChanged", async function (location) {
-        console.log(book.locations.percentageFromCfi(location.start));
+        // console.log(book.locations.percentageFromCfi(location.start));
         setTitle(renditionInstance);
         dispatch({
           type: "changepage",
           val: renditionInstance.location.start.displayed.page,
+          percentage: book.locations.percentageFromCfi(location.end),
         });
         // برای نمایش فصل به فصل مورد استفاده قرار میگیرد
         dispatch({
@@ -199,7 +201,7 @@ const EpubReader = ({ url }) => {
         startX = 0;
       });
     };
-    loadbook();
+    bookRef.current == null && loadbook();
     return () => {
       rendition?.destroy();
       bookRef.current?.destroy();
@@ -237,7 +239,7 @@ const EpubReader = ({ url }) => {
           )}
         </div>
         <div className="p-2 w-full">
-          <span style={{ color: state.color }}>
+          <span style={{ color: state.color }}> {state.title && `فصل ${state.title}`}
             صفحه {state?.current} از {state?.total} ({state.totalPage} کل)
           </span>{" "}
           <input
@@ -245,7 +247,12 @@ const EpubReader = ({ url }) => {
             className="w-full"
             type="range"
             onChange={(e) => changePage(e.target.value)}
-            value={state.current}
+            value={state.percentage * 100}
+            style={{
+              background: `linear-gradient(-90deg, #e51c20 ${
+                state.percentage * 100
+              }%, #dadada ${state.percentage * 100}%)`,
+            }}
           />
         </div>
       </div>

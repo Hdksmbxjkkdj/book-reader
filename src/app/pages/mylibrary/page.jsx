@@ -3,6 +3,7 @@
 import FormatNumber from "@/app/utils/application/FormatNumber";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function MyLibrary() {
   const [menu, setMenu] = useState(false);
@@ -86,7 +87,7 @@ export default function MyLibrary() {
               </div>
             </div>
             <div
-              className="relative"
+              className="relative group"
               onClick={() => {
                 setMenu(!menu);
               }}
@@ -105,78 +106,87 @@ export default function MyLibrary() {
                     viewBox="0 -960 960 960"
                     width="24px"
                     fill="#5f6368"
+                    className="group-hover:translate-y-[.3rem] transition-all duration-300"
                   >
                     <path d="M480-344 240-584l56-56 184 184 184-184 56 56-240 240Z" />
                   </svg>
                 </div>
               </Link>
-              {menu && (
-                <div className="absolute left-0 !z-50 top-14">
-                  <div className="bg-[#f5f5f5] p-4 shadow-lg rounded-2xl">
-                    <ul className="w-[314px] flex flex-col gap-0">
-                      <li className="hover:bg-gray-200 p-3">
-                        <div className="flex justify-between items-center">
-                          <div className="flex gap-3 items-center">
-                            <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center text-orange-500 font-semibold text-xl">
-                              {FirstWord(user.name)}
+              <AnimatePresence initial={false}>
+                {menu && (
+                  <motion.div
+                    className="absolute left-0 !z-50 top-14"
+                    initial={{ opacity: 0, y: "20%" }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: "20%" }}
+                    key="box"
+                  >
+                    <div className="bg-[#f5f5f5] p-4 shadow-lg rounded-2xl">
+                      <ul className="w-[314px] flex flex-col gap-0">
+                        <li className="hover:bg-gray-200 p-3">
+                          <div className="flex justify-between items-center">
+                            <div className="flex gap-3 items-center">
+                              <div className="h-10 w-10 bg-white rounded-full flex items-center justify-center text-orange-500 font-semibold text-xl">
+                                {FirstWord(user.name)}
+                              </div>
+                              <div>
+                                <p className="font-semibold">{user.name}</p>
+                                <p className="font-semibold">{user.phone}</p>
+                              </div>
                             </div>
                             <div>
-                              <p className="font-semibold">{user.name}</p>
-                              <p className="font-semibold">{user.phone}</p>
+                              <svg
+                                height="16px"
+                                viewBox="0 -960 960 960"
+                                width="16px"
+                                fill="#5f6368"
+                              >
+                                <path d="M400-80 0-480l400-400 71 71-329 329 329 329-71 71Z" />
+                              </svg>
                             </div>
                           </div>
-                          <div>
-                            <svg
-                              height="16px"
-                              viewBox="0 -960 960 960"
-                              width="16px"
-                              fill="#5f6368"
-                            >
-                              <path d="M400-80 0-480l400-400 71 71-329 329 329 329-71 71Z" />
-                            </svg>
+                        </li>
+                        <li className="hover:bg-gray-200 p-2">
+                          <div className="flex justify-between items-center">
+                            <p className="font-semibold ">افزایش اعتبار</p>
+                            <p className="font-semibold ">
+                              (موجودی {FormatNumber(user.cash)} تومان)
+                            </p>
                           </div>
-                        </div>
-                      </li>
-                      <li className="hover:bg-gray-200 p-2">
-                        <div className="flex justify-between items-center">
-                          <p className="font-semibold ">افزایش اعتبار</p>
-                          <p className="font-semibold ">
-                            (موجودی {FormatNumber(user.cash)} تومان)
+                        </li>
+                        <li className="hover:bg-gray-200 p-2">
+                          <p className="font-semibold ">خرید اشتراک بینهایت</p>
+                        </li>
+                        <hr className="border-slate-400 my-2" />
+                        <li className="hover:bg-gray-200 p-2">
+                          <p className="text-xl ">کتاب های من</p>
+                        </li>
+                        <li className="hover:bg-gray-200 p-2">
+                          <p className="text-xl ">رویش</p>
+                        </li>
+                        <li className="hover:bg-gray-200 p-2">
+                          <p className="text-xl ">
+                            تاریخچه پرداخت های الکترونیکی
                           </p>
-                        </div>
-                      </li>
-                      <li className="hover:bg-gray-200 p-2">
-                        <p className="font-semibold ">خرید اشتراک بینهایت</p>
-                      </li>
-                      <hr className="border-slate-400 my-2" />
-                      <li className="hover:bg-gray-200 p-2">
-                        <p className="text-xl ">کتاب های من</p>
-                      </li>
-                      <li className="hover:bg-gray-200 p-2">
-                        <p className="text-xl ">رویش</p>
-                      </li>
-                      <li className="hover:bg-gray-200 p-2">
-                        <p className="text-xl ">
-                          تاریخچه پرداخت های الکترونیکی
-                        </p>
-                      </li>
-                      <li className="hover:bg-gray-200 p-2">
-                        <p className="text-xl ">کارنامه مطالعه</p>
-                      </li>
-                      <hr className="border-slate-400 my-2" />
-                      <li className="hover:bg-gray-200 p-2">
-                        <p className="text-xl ">ارتباط با پشتیبانی</p>
-                      </li>
-                      <li className="hover:bg-gray-200 p-2">
-                        <p className="text-xl ">مدریت دستگاه ها</p>
-                      </li>
-                      <li className="hover:bg-gray-200 p-2">
-                        <p className="text-xl ">خروج از حساب کاربری</p>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              )}
+                        </li>
+                        <li className="hover:bg-gray-200 p-2">
+                          <p className="text-xl ">کارنامه مطالعه</p>
+                        </li>
+                        <hr className="border-slate-400 my-2" />
+                        <li className="hover:bg-gray-200 p-2">
+                          <p className="text-xl ">ارتباط با پشتیبانی</p>
+                        </li>
+                        <li className="hover:bg-gray-200 p-2">
+                          <p className="text-xl ">مدریت دستگاه ها</p>
+                        </li>
+                        <li className="hover:bg-gray-200 p-2">
+                          <p className="text-xl ">خروج از حساب کاربری</p>
+                        </li>
+                      </ul>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
           <div className="flex justify-between items-scratch mt-4 pb-4 relative">
@@ -251,11 +261,11 @@ export default function MyLibrary() {
           <p className=" cursor-pointer font-semibold">نشان شده ها</p>
           <p className=" cursor-pointer font-semibold">سایان بینهایت</p>
         </div>
-        <div className="flex mt-4 gap-4 flex-wrap">
+        <div className="flex mt-4 gap-4 flex-wrap justify-center md:justify-start">
           {user.books.map((book) => {
             return (
               <div
-                className="rounded-md border border-gray-300 p-2 w-1/6 h-72"
+                className="rounded-md border border-gray-300 p-2 w-1/6 h-72 min-w-32"
                 key={book.id}
               >
                 <Link href={"/pages/vBook"}>
@@ -273,7 +283,7 @@ export default function MyLibrary() {
           {user.e_books.map((book) => {
             return (
               <div
-                className="rounded-md border border-gray-300 p-2 w-1/6 h-72"
+                className="rounded-md border border-gray-300 p-2 w-1/6 h-72 min-w-32"
                 key={book.id}
               >
                 <Link href={"/pages/eBook"}>

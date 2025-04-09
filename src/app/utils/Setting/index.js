@@ -1,4 +1,4 @@
-export default function Setting(dispatch, rendition, state) {
+export default function Setting(dispatch, rendition, state,setRendition) {
   function changefontSize(size) {
     let varibale;
     if (size === "larger") {

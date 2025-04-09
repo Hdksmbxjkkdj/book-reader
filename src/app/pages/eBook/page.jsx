@@ -7,7 +7,7 @@ const EpubReader = dynamic(() => import("@/app/components/EpubReader/page"), { s
 
 export default function Ebook() {
     return <>
-    <CustomEpubReader url={"/alice.epub"}/>
-        {/* <EpubReader key={Math.random()} url={"/alice.epub"}/> */}
+    {/* <CustomEpubReader url={"/ebadat.epub"}/> */}
+        <EpubReader key={Math.random()} url={"/ebadat.epub"}/>
     </>
 }

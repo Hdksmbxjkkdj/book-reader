@@ -43,7 +43,7 @@ export default function BookReader({ url }) {
     if (rendition) {
       rendition.display(percentage / 100);
     }
-  }, [percentage, rendition]);
+  }, [percentage]);
 
   useEffect(() => {
     if (rendition) updateTheme(rendition, theme);
@@ -148,13 +148,13 @@ export default function BookReader({ url }) {
           <path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z" />
         </svg>
       </motion.button>
-      {settings && (
-        <AnimatePresence>
+      <AnimatePresence initial={false}>
+        {settings && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: [1.1, 0.9, 1.1, 0.9, 1] }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ type: "tween", duration: 0.6 }}
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.7 }}
+            transition={{ type: "tween", duration: 0.3 }}
             className="!min-w-80 !min-h-96 p-4 bg-slate-900/80 z-50 absolute top-12 right-4 rounded-2xl text-white"
           >
             <motion.button
@@ -299,8 +299,8 @@ export default function BookReader({ url }) {
               </div>
             </div>
           </motion.div>
-        </AnimatePresence>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Reader */}
       <div className="flex-1 flex flex-col" style={{ direction: "ltr" }}>
@@ -364,6 +364,20 @@ export default function BookReader({ url }) {
               onChange={(e) => setPercentage(e.target.value)}
             />
             <p className="text-center">{page}</p>
+            <button
+              onClick={() => {
+                rendition?.prev();
+              }}
+            >
+              قبلی
+            </button>
+            <button
+              onClick={() => {
+                rendition?.next();
+              }}
+            >
+              بعدی
+            </button>
           </div>
         </div>
       </div>
