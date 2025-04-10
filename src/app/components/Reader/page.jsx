@@ -1,386 +1,242 @@
-"use client";
+import React, { useState, useEffect, useRef } from 'react';
+import JSZip from 'jszip';
 
-import { useEffect, useRef, useState } from "react";
-import { ReactReader } from "react-reader";
-import { motion, AnimatePresence } from "framer-motion";
-import useLocalStorageState from "use-local-storage-state";
+const EPUBViewer = () => {
+  const [zip, setZip] = useState(null);
+  const [bookData, setBookData] = useState(null);
+  const [chapters, setChapters] = useState([]);
+  const [allPages, setAllPages] = useState([]);
+  const [pageChapterMap, setPageChapterMap] = useState([]);
+  const [globalPageIndex, setGlobalPageIndex] = useState(0);
+  const viewerRef = useRef(null);
+  const pageRangeRef = useRef(null);
 
-const STORAGE_KEY = "epub-location";
+  useEffect(() => {
+    loadEPUBFromURL('./alice.epub');
+  }, []);
 
-export default function BookReader({ url }) {
-  const [settings, setSettings] = useState(false);
-  const [location, setLocation] = useLocalStorageState("persist-location", {
-    defaultValue: 0,
-  });
-  const [fontSize, setFontSize] = useState(100);
-  const [theme, setTheme] = useState("light");
-  const [align, setAlign] = useState(0);
-  const [lineHeight, setLineHeight] = useState(1.6);
-  const [rendition, setRendition] = useState(null);
-  const [toc, setToc] = useState([]);
-  const [page, setPage] = useState(0);
-  const [percentage, setPercentage] = useState(0);
-  const readerRef = useRef(null);
-
-  const isValidCfi = (cfi) => {
-    return typeof cfi === "string" && cfi.startsWith("epubcfi(");
+  const loadEPUBFromURL = async (url) => {
+    try {
+      const response = await fetch(url);
+      const arrayBuffer = await response.arrayBuffer();
+      const loadedZip = await JSZip.loadAsync(arrayBuffer);
+      setZip(loadedZip);
+      await parseEPUBStructure(loadedZip);
+    } catch (error) {
+      console.error('Error loading EPUB:', error);
+    }
   };
 
-  function reset() {
-    setAlign(0);
-    setLineHeight(1.6);
-    setFontSize(100);
-    setTheme("light");
-  }
+  const parseEPUBStructure = async (loadedZip) => {
+    const containerXml = await loadedZip.file('META-INF/container.xml').async('text');
+    const opfPath = parseContainerXml(containerXml);
+    const opfContent = await loadedZip.file(opfPath).async('text');
+    const bookData = parseOpfFile(opfContent, opfPath);
+    setBookData(bookData);
+    setChapters(bookData.spine);
+    processChapters(loadedZip, bookData.spine);
+  };
 
-  useEffect(() => {
-    if (rendition) {
-      rendition.themes.fontSize(`${fontSize}%`);
-    }
-  }, [fontSize, rendition]);
+  const parseContainerXml = (xml) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml, 'text/xml');
+    const rootfile = doc.querySelector('rootfile');
+    return rootfile.getAttribute('full-path');
+  };
 
-  useEffect(() => {
-    if (rendition) {
-      rendition.display(percentage / 100);
-    }
-  }, [percentage]);
+  const parseOpfFile = (opfContent, opfPath) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(opfContent, 'text/xml');
+    const basePath = opfPath.split('/').slice(0, -1).join('/');
 
-  useEffect(() => {
-    if (rendition) updateTheme(rendition, theme);
-  }, [theme]);
-  useEffect(() => {
-    if (rendition) updateAlign(rendition, align);
-  }, [align]);
-  useEffect(() => {
-    if (rendition) updateLineHeight(rendition, lineHeight);
-  }, [lineHeight]);
-
-  function updateTheme(rendition, theme) {
-    const themes = rendition.themes;
-    switch (theme) {
-      case "dark": {
-        themes.override("color", "#fff");
-        themes.override("background", "#000");
-        break;
-      }
-      case "light": {
-        themes.override("color", "#000");
-        themes.override("background", "#fff");
-        break;
-      }
-      case "sepia": {
-        themes.override("color", "#000");
-        themes.override("background", "#fecaca");
-        break;
-      }
-    }
-  }
-  function updateAlign(rendition, align) {
-    const themes = rendition.themes;
-    switch (align) {
-      case 0: {
-        themes.update("custom", {
-          body: {
-            "text-align": "right !important",
-          },
-          p: {
-            "text-align": "right !important",
-          },
-        });
-        themes.select("custom");
-        break;
-      }
-      case 1: {
-        themes.register("custom", {
-          body: {
-            "text-align": "center !important",
-          },
-          p: {
-            "text-align": "center !important",
-          },
-        });
-        themes.select("custom");
-        break;
-      }
-      case 2: {
-        themes.register("custom", {
-          body: {
-            "text-align": "justify !important",
-          },
-          p: {
-            "text-align": "justify !important",
-          },
-        });
-        themes.select("custom");
-        break;
-      }
-    }
-  }
-  function updateLineHeight(rendition, lineHeight) {
-    const themes = rendition.themes;
-    themes.register("lineheight", {
-      body: {
-        "line-height": lineHeight,
-      },
-      p: {
-        "line-height": lineHeight,
-      },
+    const manifest = {};
+    doc.querySelectorAll('manifest > item').forEach(item => {
+      manifest[item.getAttribute('id')] = {
+        href: item.getAttribute('href'),
+        mediaType: item.getAttribute('media-type'),
+        path: `${basePath}/${item.getAttribute('href')}`,
+      };
     });
-    themes.select("lineheight");
-  }
+
+    const spine = [];
+    doc.querySelectorAll('spine > itemref').forEach(item => {
+      spine.push(item.getAttribute('idref'));
+    });
+
+    return { manifest, spine };
+  };
+
+  const processChapters = async (loadedZip, spine) => {
+    const pages = [];
+    const pageChapterMap = [];
+    for (let i = 0; i < spine.length; i++) {
+      const chapterId = spine[i];
+      const chapterInfo = bookData.manifest[chapterId];
+      const content = await loadedZip.file(chapterInfo.path).async('text');
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(content, 'application/xhtml+xml');
+
+      processImages(doc, chapterInfo.path);
+      const rawHTML = doc.body.innerHTML;
+      const chapterPages = paginateContent(rawHTML);
+
+      chapterPages.forEach((page) => {
+        pages.push(page);
+        pageChapterMap.push(i);
+      });
+    }
+
+    setAllPages(pages);
+    setPageChapterMap(pageChapterMap);
+    setGlobalPageIndex(0);
+    if (pageRangeRef.current) {
+      pageRangeRef.current.max = pages.length - 1;
+      pageRangeRef.current.value = 0;
+    }
+    displayCurrentPage(pages);
+  };
+
+  const processImages = (doc, chapterPath) => {
+    const baseDir = chapterPath.split('/').slice(0, -1).join('/');
+    doc.querySelectorAll('img').forEach(img => {
+      const src = img.getAttribute('src');
+      if (!src.startsWith('http')) {
+        const fullPath = `${baseDir}/${src}`;
+        zip.file(fullPath).async('blob').then(blob => {
+          img.src = URL.createObjectURL(blob);
+        }).catch(() => {
+          img.alt = `[Image not found: ${src}]`;
+        });
+      }
+    });
+  };
+
+  const paginateContent = (html, maxChars = 2000) => {
+    const words = html.split(/\s+/);
+    let pages = [], current = '';
+
+    for (let word of words) {
+      if ((current + ' ' + word).length > maxChars) {
+        pages.push(createPage(current));
+        current = word;
+      } else {
+        current += ' ' + word;
+      }
+    }
+    if (current.trim()) {
+      pages.push(createPage(current));
+    }
+    return pages;
+  };
+
+  const createPage = (content) => {
+    const div = document.createElement('div');
+    div.className = 'page';
+    div.innerHTML = content;
+    return div;
+  };
+
+  const displayCurrentPage = (pages) => {
+    if (viewerRef.current) {
+      viewerRef.current.innerHTML = '';
+      pages.forEach((page, index) => {
+        page.classList.toggle('active', index === globalPageIndex);
+        viewerRef.current.appendChild(page);
+      });
+    }
+  };
+
+  const prevPage = () => {
+    if (globalPageIndex > 0) {
+      setGlobalPageIndex(globalPageIndex - 1);
+    }
+  };
+
+  const nextPage = () => {
+    if (globalPageIndex < allPages.length - 1) {
+      setGlobalPageIndex(globalPageIndex + 1);
+    }
+  };
+
+  const handlePageRangeChange = (e) => {
+    setGlobalPageIndex(parseInt(e.target.value));
+  };
+
+  const changeTheme = (theme) => {
+    const viewer = viewerRef.current;
+    switch (theme) {
+      case 'dark':
+        viewer.style.backgroundColor = '#1e1e1e';
+        viewer.style.color = '#f1f1f1';
+        break;
+      case 'sepia':
+        viewer.style.backgroundColor = '#f4ecd8';
+        viewer.style.color = '#5b4636';
+        break;
+      default:
+        viewer.style.backgroundColor = '#fff';
+        viewer.style.color = '#000';
+        break;
+    }
+  };
 
   return (
-    <div className="flex flex-col h-screen container mx-auto pb-24 md:pb-0 relative">
-      {/* Sidebar */}
-      <motion.button
-        whileHover={{
-          rotateZ: 360,
-          transition: {
-            duration: 3,
-            repeat: Infinity,
-            ease: "easeInOut",
-          },
-        }}
-        className="mb-3 w-fit absolute right-4 top-4 z-50"
-        onClick={() => setSettings(!settings)}
-      >
-        <svg height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368">
-          <path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z" />
-        </svg>
-      </motion.button>
-      <AnimatePresence initial={false}>
-        {settings && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.7 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.7 }}
-            transition={{ type: "tween", duration: 0.3 }}
-            className="!min-w-80 !min-h-96 p-4 bg-slate-900/80 z-50 absolute top-12 right-4 rounded-2xl text-white"
-          >
-            <motion.button
-              whileHover={{
-                rotateZ: 90,
-              }}
-              whileTap={{ rotateZ: 405 }}
-              onClick={reset}
-              className="absolute left-2 top-2"
-              title="بازنشانی تنظیمات"
-            >
-              <svg
-                height="24px"
-                viewBox="0 -960 960 960"
-                width="24px"
-                fill="#ffffff"
-              >
-                <path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z" />
-              </svg>
-            </motion.button>
-            <div className="mt-4 basis-auto flex relative">
-              <button onClick={() => setAlign(0)} className="z-10 px-2 py-1">
-                <svg
-                  height="24px"
-                  viewBox="0 -960 960 960"
-                  width="24px"
-                  fill="#ffffff"
-                >
-                  <path d="M120-760v-80h720v80H120Zm240 160v-80h480v80H360ZM120-440v-80h720v80H120Zm240 160v-80h480v80H360ZM120-120v-80h720v80H120Z" />
-                </svg>
-              </button>
-              <button onClick={() => setAlign(1)} className="z-10 px-2 py-1">
-                <svg
-                  height="24px"
-                  viewBox="0 -960 960 960"
-                  width="24px"
-                  fill="#ffffff"
-                >
-                  <path d="M120-120v-80h720v80H120Zm160-160v-80h400v80H280ZM120-440v-80h720v80H120Zm160-160v-80h400v80H280ZM120-760v-80h720v80H120Z" />
-                </svg>
-              </button>
-              <button onClick={() => setAlign(2)} className="z-10 px-2 py-1">
-                <svg
-                  height="24px"
-                  viewBox="0 -960 960 960"
-                  width="24px"
-                  fill="#ffffff"
-                >
-                  <path d="M120-120v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Zm0-160v-80h720v80H120Z" />
-                </svg>
-              </button>
-              <motion.div
-                style={{
-                  transform: `translateX(-${align * 2.5}rem)`,
-                  transition: "transform 0.3s ease",
-                }}
-                className="absolute top-0 right-0 bottom-0 w-[2.5rem] bg-red-500 rounded-md z-0"
-              ></motion.div>
-            </div>
-            {/* Font size */}
-            <div className="mt-4 basis-auto">
-              <label className="block text-sm mb-1">🅰 تغییر اندازه فونت</label>
-              <p>{fontSize}%</p>
-              <input
-                type="range"
-                min={80}
-                max={140}
-                value={fontSize}
-                onChange={(e) => setFontSize(parseInt(e.target.value))}
-              />
-            </div>
-            <div className="mt-4 basis-auto">
-              <label className="block text-sm mb-1">🅰 تغییر ارتفاع خطوط</label>
-              <p>{lineHeight}</p>
-              <input
-                type="range"
-                min={1.2}
-                max={2.5}
-                step={0.1}
-                value={lineHeight}
-                onChange={(e) => setLineHeight(parseFloat(e.target.value))}
-              />
-            </div>
-
-            {/* Theme select */}
-            <div className="mt-4 basis-auto">
-              <div className="flex flex-nowrap gap-4">
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.8 }}
-                  onClick={() => setTheme("dark")}
-                  className="h-10 w-10 rounded-full cursor-pointer bg-black flex justify-center items-center"
-                >
-                  {theme === "dark" && (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      height="32px"
-                      viewBox="0 -960 960 960"
-                      width="32px"
-                      fill="#333333"
-                    >
-                      <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
-                    </svg>
-                  )}
-                </motion.div>
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.8 }}
-                  onClick={() => setTheme("light")}
-                  className="h-10 w-10 rounded-full cursor-pointer bg-white flex items-center justify-center"
-                >
-                  {theme === "light" && (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      height="32px"
-                      viewBox="0 -960 960 960"
-                      width="32px"
-                      fill="#dddddd"
-                    >
-                      <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
-                    </svg>
-                  )}
-                </motion.div>
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.8 }}
-                  onClick={() => setTheme("sepia")}
-                  className="h-10 w-10 rounded-full cursor-pointer bg-red-200 flex items-center justify-center"
-                >
-                  {theme === "sepia" && (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      height="32px"
-                      viewBox="0 -960 960 960"
-                      width="32px"
-                      fill="#feaaaa"
-                    >
-                      <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
-                    </svg>
-                  )}
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Reader */}
-      <div className="flex-1 flex flex-col" style={{ direction: "ltr" }}>
-        <div className="flex-1 !rounded-lg border border-slate-300 relative">
-          <ReactReader
-            ref={readerRef}
-            swipeable={true}
-            url={url}
-            location={location}
-            tocChanged={(toc) => setToc(toc)}
-            locationChanged={(loc) => {
-              setLocation(loc);
-              if (!isValidCfi(loc)) return;
-              setPercentage(
-                Math.ceil(rendition.book.locations.percentageFromCfi(loc) * 100)
-              );
-
-              if ((rendition, toc)) {
-                const { displayed, href } = rendition.location.start;
-                const chapter = toc.find((item) => item.href === href);
-                setPage(
-                  `صفحه ${displayed?.page} از ${displayed?.total} (بخش ${
-                    chapter ? chapter.label : "نامعلوم"
-                  })`
-                );
-              }
-            }}
-            epubOptions={{ flow: "paginated" }}
-            getRendition={(r) => {
-              setRendition(r);
-
-              // Register themes
-              r.themes.fontSize(`${fontSize}%`);
-
-              r.book.ready.then(() => {
-                r.book.locations.generate(1000).then(() => {
-                  if (location) {
-                    r.display(location);
-                  }
-                });
-              });
-            }}
-          />
-        </div>
-
-        {/* Bottom Controls */}
-        <div className="p-6 text-sm">
-          <div className="text-right min-w-[120px] relative">
-            <p className="absolute -top-5" style={{ left: `${percentage}%` }}>
-              {percentage}%
-            </p>
-            <input
-              type="range"
-              className="w-full mx-auto block mb-6"
-              style={{
-                background: `linear-gradient(90deg, red ${percentage}%,#dadada ${percentage}%)`,
-              }}
-              min={0}
-              max={100}
-              value={percentage}
-              onChange={(e) => setPercentage(e.target.value)}
-            />
-            <p className="text-center">{page}</p>
-            <button
-              onClick={() => {
-                rendition?.prev();
-              }}
-            >
-              قبلی
-            </button>
-            <button
-              onClick={() => {
-                rendition?.next();
-              }}
-            >
-              بعدی
-            </button>
-          </div>
+    <div id="app">
+      <div id="toolbar">
+        <div className="chapter-nav">
+          <button onClick={prevPage}>Previous</button>
+          <span id="page-indicator">Page {globalPageIndex + 1} / {allPages.length}</span>
+          <button onClick={nextPage}>Next</button>
         </div>
       </div>
+      <div id="settings">
+        <label>Font Size:
+          <select onChange={(e) => viewerRef.current.style.fontSize = e.target.value}>
+            <option value="14px">Small</option>
+            <option value="16px" selected>Normal</option>
+            <option value="18px">Large</option>
+            <option value="20px">X-Large</option>
+          </select>
+        </label>
+        <label>Theme:
+          <select onChange={(e) => changeTheme(e.target.value)}>
+            <option value="light" selected>Light</option>
+            <option value="dark">Dark</option>
+            <option value="sepia">Sepia</option>
+          </select>
+        </label>
+        <label>Text Align:
+          <select onChange={(e) => viewerRef.current.style.textAlign = e.target.value}>
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+            <option value="center">Center</option>
+            <option value="justify" selected>Justify</option>
+          </select>
+        </label>
+        <label>Line Height:
+          <select onChange={(e) => viewerRef.current.style.lineHeight = e.target.value}>
+            <option value="1.4">1.4</option>
+            <option value="1.6" selected>1.6</option>
+            <option value="1.8">1.8</option>
+            <option value="2.0">2.0</option>
+          </select>
+        </label>
+      </div>
+      <div id="range-container">
+        <input
+          type="range"
+          ref={pageRangeRef}
+          min="0"
+          max="0"
+          step="1"
+          value={globalPageIndex}
+          onChange={handlePageRangeChange}
+        />
+        <span>Page {globalPageIndex + 1} / {allPages.length}</span>
+      </div>
+      <div ref={viewerRef} id="viewer"></div>
     </div>
   );
-}
+};
+
+export default EPUBViewer;

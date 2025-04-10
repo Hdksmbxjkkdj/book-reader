@@ -4,6 +4,7 @@ import FormatNumber from "@/app/utils/application/FormatNumber";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Waveform from "@/app/components/VocalBook/page";
 
 export default function MyLibrary() {
   const [menu, setMenu] = useState(false);
@@ -47,6 +48,7 @@ export default function MyLibrary() {
     ],
   };
   const [doc, setDoc] = useState(null);
+  const [voice, setVoice] = useState("");
   useEffect(() => {
     setDoc(document.body);
   }, []);
@@ -268,7 +270,7 @@ export default function MyLibrary() {
                 className="rounded-md border border-gray-300 p-2 w-1/6 h-72 min-w-32"
                 key={book.id}
               >
-                <Link href={"/pages/vBook"}>
+                <Link href={"#"} onClick={() => setVoice("/test.mp3")}>
                   <img
                     className="w-full rounded-md h-3/5 object-cover object-center"
                     src={book.image ? book.image : "/defaultbook.jpg"}
@@ -300,6 +302,7 @@ export default function MyLibrary() {
           })}
         </div>
       </div>
+      {voice !== "" && <Waveform url={voice} setVoice={setVoice} />}
     </>
   );
 }

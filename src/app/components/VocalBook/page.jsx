@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import WaveSurfer from "wavesurfer.js";
 
-const Waveform = ({ url }) => {
+const Waveform = ({ url,setVoice }) => {
   const waveformRef = useRef(null);
   const player = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -93,7 +93,8 @@ const Waveform = ({ url }) => {
   function handleClose() {
     isPlaying && waver.pause();
     waver.distroy;
-    if (player.current) player.current.style.display = "none";
+    setVoice('')
+
   }
   function handleSpeed() {
     if (speed < 2) {
